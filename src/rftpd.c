@@ -11,29 +11,30 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <getopt.h>
+#include "rftp-messages.h"
 
-#define DEFAULT_TIMEWAIT 30     // Default transmission timeout: 50 milliseconds.
+#define DEFAULT_TIME_WAIT 30    // Default transmission timeout: 50 milliseconds.
 #define DEFAULT_PORT 5000       // Default port number: 5000.
 
+// Main program.
 int main (int argc, char **argv)
 {
-    static int verbose_flag = 0;                // Toggles verbose output.
-    int timewait            = DEFAULT_TIMEWAIT; // Transmission timeout, in milliseconds.
-    int port_number         = DEFAULT_PORT;     // Port number the server is listening on.
+    static int verbose_flag = 0;                        // Toggles verbose output.
+    int time_wait           = DEFAULT_TIME_WAIT;        // Transmission timeout, in milliseconds.
+    int port_number         = DEFAULT_PORT;             // Port number the server is listening on.
+    char *output_dir        = NULL;                     // The output directory for the file transfer.
 
-    while(1)
+    // Handle command line options.
+    int arg, option_index = 0;
+    static struct option long_options[] =
     {
-        int arg, option_index = 0;
-        static struct option long_options[] =
-        {
-                {"verbose", no_argument, &verbose_flag, 1},
-                {"timewait", optional_argument, 0, 't'},
-                {"port", optional_argument, 0, 'p'},
-                {0, 0, 0, 0}
-        };
-        arg = getopt_long(argc, argv, "vt:p:", long_options, &option_index);
-
-        if (arg == -1) break;
+            {"verbose", no_argument, &verbose_flag, 1},
+            {"timewait", optional_argument, 0, 't'},
+            {"port", optional_argument, 0, 'p'},
+            {0, 0, 0, 0}
+    };
+    while((arg = getopt_long(argc, argv, "vt:p:", long_options, &option_index)) != EOF)
+    {
         switch (arg)
         {
             // Enables verbose output.
@@ -42,15 +43,30 @@ int main (int argc, char **argv)
                 break;
             // Sets transmission response wait time, in milliseconds.
             case 't':
-                timewait = optarg;
+                time_wait = atoi(optarg);
                 break;
             // Sets port number to send messages to.
             case 'p':
-                port_number = optarg;
+                port_number = atoi(optarg);
                 break;
             // Failure.
             case '?':
                 exit(EXIT_FAILURE);
         }
     }
+    // Handle non-option arguments.
+    if(optind < argc)
+        // Get the output directory from arguments.
+        if (!output_dir) output_dir = argv[optind];
+    // If an output directory was not supplied, exit the program.
+    if (!output_dir)
+    {
+        printf("ERROR:\n");
+        printf("- A output directory must be supplied.\n");
+        printf("Sample usage: %s [OPTIONS...] [OUTPUTDIR]\n", argv[0]);
+        exit(EXIT_FAILURE);
+    }
+
+    // Exit the program.
+    exit(EXIT_SUCCESS);
 }
