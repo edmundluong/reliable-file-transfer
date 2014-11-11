@@ -12,16 +12,19 @@
 #include <stdlib.h>
 #include <getopt.h>
 #include "rftp-messages.h"
+#include "rftp-client.h"
+#include "udp_sockets.h"
+#include "udp_client.h"
 
 #define DEFAULT_TIMEOUT 50      // Default transmission timeout: 50 milliseconds.
-#define DEFAULT_PORT 5000       // Default port number: 5000.
+#define DEFAULT_PORT "5000"     // Default port number: 5000.
 
 // Main program.
 int main (int argc, char **argv)
 {
     static int verbose_flag = 0;               // Toggles verbose output.
     int timeout             = DEFAULT_TIMEOUT; // Transmission timeout, in milliseconds.
-    int port_number         = DEFAULT_PORT;    // Port number the server is listening on.
+    char *port_number       = DEFAULT_PORT;    // Port number the server is listening on.
     char *server            = NULL;            // The server name that is receiving the file.
     char *filename          = NULL;            // The name of the file that is being transferred.
 
@@ -38,20 +41,16 @@ int main (int argc, char **argv)
     {
         switch (arg)
         {
-            // Enables verbose output.
-            case 'v':
+            case 'v':   // Enables verbose output.
                 verbose_flag = 1;
                 break;
-            // Sets transmission timeout, in milliseconds.
-            case 't':
+            case 't':   // Sets transmission timeout, in milliseconds.
                 timeout = atoi(optarg);
                 break;
-            // Sets port number to send messages to.
-            case 'p':
-                port_number = atoi(optarg);
+            case 'p':   // Sets port number to send messages to.
+                port_number = optarg;
                 break;
-            // Failure.
-            case '?':
+            case '?':   // Failure.
                 exit(EXIT_FAILURE);
         }
     }
@@ -75,7 +74,16 @@ int main (int argc, char **argv)
         exit(EXIT_FAILURE);
     }
 
-    // Exit the program.
-    exit(EXIT_SUCCESS);
+    // Transfer the file to the server and exit the program.
+    if (rftp_file_transfer(server, port_number, filename, timeout, verbose_flag))
+    {
+        printf("%s was successfully transferred.\n", filename);
+        exit(EXIT_SUCCESS);
+    }
+    else
+    {
+        printf("ERROR: %s failed to transfer.\n", filename);
+        exit(EXIT_FAILURE);
+    }
 }
 

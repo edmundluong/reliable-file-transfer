@@ -12,16 +12,19 @@
 #include <stdlib.h>
 #include <getopt.h>
 #include "rftp-messages.h"
+#include "rftp-server.h"
+#include "udp_sockets.h"
+#include "udp_server.h"
 
 #define DEFAULT_TIME_WAIT 30    // Default transmission timeout: 50 milliseconds.
-#define DEFAULT_PORT 5000       // Default port number: 5000.
+#define DEFAULT_PORT "5000"     // Default port number: 5000.
 
 // Main program.
 int main (int argc, char **argv)
 {
     static int verbose_flag = 0;                        // Toggles verbose output.
     int time_wait           = DEFAULT_TIME_WAIT;        // Transmission timeout, in milliseconds.
-    int port_number         = DEFAULT_PORT;             // Port number the server is listening on.
+    char *port_number       = DEFAULT_PORT;             // Port number the server is listening on.
     char *output_dir        = NULL;                     // The output directory for the file transfer.
 
     // Handle command line options.
@@ -37,20 +40,16 @@ int main (int argc, char **argv)
     {
         switch (arg)
         {
-            // Enables verbose output.
-            case 'v':
+            case 'v':   // Enables verbose output.
                 verbose_flag = 1;
                 break;
-            // Sets transmission response wait time, in milliseconds.
-            case 't':
+            case 't':   // Sets transmission response wait time, in milliseconds.
                 time_wait = atoi(optarg);
                 break;
-            // Sets port number to send messages to.
-            case 'p':
-                port_number = atoi(optarg);
+            case 'p':   // Sets port number to send messages to.
+                port_number = optarg;
                 break;
-            // Failure.
-            case '?':
+            case '?':   // Failure.
                 exit(EXIT_FAILURE);
         }
     }
@@ -67,6 +66,13 @@ int main (int argc, char **argv)
         exit(EXIT_FAILURE);
     }
 
-    // Exit the program.
-    exit(EXIT_SUCCESS);
+    // Receive a file transfer from the client and exit the program.
+    if (rftp_receive_file(port_number, output_dir, time_wait, verbose_flag))
+    {
+        exit(EXIT_SUCCESS);
+    }
+    else
+    {
+        exit(EXIT_FAILURE);
+    }
 }

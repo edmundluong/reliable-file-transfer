@@ -3,7 +3,8 @@
  *  Author      : Edmund Luong <edmundvmluong@gmail.com>
  *  Version     : 1.0
  *  Copyright   : MIT 2014 © Edmund Luong
- *  Description : Message structs for the Reliable File Transfer Protocol (RFTP).
+ *  Date        : November 11, 2014
+ *  Description : Messages for the Reliable File Transfer Protocol (RFTP).
  *
  *  CS 3357a Assignment 2
  */
@@ -44,5 +45,12 @@ typedef struct rftp_data_message
     uint32_t data_length;       // The number of bytes of data in the Data field.
     uint8_t data[DATA_MSS];     // A sequence of file data bytes.
 } data_message;
+
+/*
+ * Function prototypes.
+ */
+control_message *create_init_message();
+control_message *create_exit_message();
+data_message *create_data_message();
 
 #endif /* RFTP_MESSAGES_H_ */
