@@ -1,4 +1,4 @@
 /Debug/
-src/rftpd
-src/rftp
+/src/rftpd
+/src/rftp
 *.o
