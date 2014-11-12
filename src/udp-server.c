@@ -3,8 +3,8 @@
 #include <stdlib.h>
 #include <sys/socket.h>
 #include <unistd.h>
-#include "udp_server.h"
-#include "udp_sockets.h"
+#include "udp-server.h"
+#include "udp-sockets.h"
 
 int bind_socket (struct addrinfo* addr_list)
 {

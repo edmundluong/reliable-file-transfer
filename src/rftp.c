@@ -11,10 +11,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <getopt.h>
-#include "rftp-messages.h"
 #include "rftp-client.h"
-#include "udp_sockets.h"
-#include "udp_client.h"
 
 #define DEFAULT_TIMEOUT 50      // Default transmission timeout: 50 milliseconds.
 #define DEFAULT_PORT "5000"     // Default port number: 5000.

@@ -12,10 +12,12 @@
 #ifndef RFTP_MESSAGES_H
 #define RFTP_MESSAGES_H
 
-#define FILENAME_MSS 1460       // Filename maximum segment.
-#define DATA_MSS 1464           // Data maximum segment.
+#define FILENAME_MSS 1460       // Filename maximum segment size.
+#define DATA_MSS 1464           // Data maximum segment size.
+#define RFTP_MSS 1468           // RFTP maximum segment size.
 
 #include <stdint.h>
+#include "udp-sockets.h"
 
 /*
  * A control message to initiate and terminate file transfer sessions.
@@ -47,10 +49,28 @@ typedef struct rftp_data_message
 } data_message;
 
 /*
+ * Generic type for RFTP messages.
+ *
+ * RFTP MSS: 1472 bytes.
+ */
+typedef struct rftp_base_message
+{
+    uint8_t type;               // Type of RFTP message: init=1 or exit=2 or data=3.
+    uint8_t ack;                // Acknowledgment identifier: sent=0 or ack=1.
+    uint16_t seq_num;           // Sequence number of the message: 0 or 1.
+    uint32_t length;            // Length of the message.
+    uint8_t buffer[DATA_MSS];   // A sequence of buffer bytes.
+} rftp_message;
+
+/*
  * Function prototypes.
  */
 control_message *create_init_message();
 control_message *create_exit_message();
 data_message *create_data_message();
+rftp_message *create_rftp_message();
+rftp_message *receive_rftp_message (int sockfd, host_t *source);
+rftp_message *receive_rftp_message_without_timeout(int sockfd, int timeout, host_t *source);
+int send_rftp_message (int sockfd, rftp_message *msg, host_t *dest);
 
 #endif /* RFTP_MESSAGES_H_ */

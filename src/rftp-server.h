@@ -15,5 +15,6 @@
  * Function prototypes.
  */
 int rftp_receive_file(char *port_number, char *output_dir, int time_wait, int verbose);
+int initialize_transfer(int sockfd, host_t *source);
 
 #endif /* RFTP_SERVER_H */
