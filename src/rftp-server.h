@@ -11,6 +11,8 @@
 #ifndef RFTP_SERVER_H
 #define RFTP_SERVER_H
 
+#include "udp-sockets.h"
+
 /*
  * Function prototypes.
  */

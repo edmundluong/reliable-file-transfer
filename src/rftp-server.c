@@ -6,6 +6,8 @@
  */
 
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include "rftp-messages.h"
 #include "rftp-server.h"
 #include "udp-sockets.h"
@@ -14,18 +16,27 @@
 /*
  * Initializes the server to begin receiving a file from a client.
  */
-int initialize_receive(int sockfd, host_t *source)
+control_message *initialize_receive(int sockfd, host_t *source)
 {
     // Receive a control message from client.
     control_message *msg = (control_message*) receive_rftp_message(sockfd, source);
-
-    // If the message is an initialization message, return 1.
     if (msg)
+    {
+        // If the message is an initialization message.
         if (msg->type == 1 && msg->seq_num == 0)
-            return 1;
+        {
+            // Acknowledge the message and send it back to the client.
+            msg->ack = 1;
+            send_rftp_message(sockfd, (rftp_message*) msg, source);
 
-    // Else return 0.
-    return 0;
+            // Return the message.
+            return msg;
+        }
+    }
+
+    // If there was an error with the init message, return 0.
+    free(msg);
+    return NULL;
 }
 
 /*
@@ -33,19 +44,28 @@ int initialize_receive(int sockfd, host_t *source)
  */
 int rftp_receive_file(char *port_number, char *output_dir, int time_wait, int verbose)
 {
+    host_t client;              // Client host.
+
     // Create a socket and listen on port number.
-    host_t client;
     int sockfd = create_server_socket(port_number);
+    printf("Listening on port %s\n", port_number);
 
     // If a file transfer was initialized.
-    if (initialize_receive(sockfd, &client))
+    control_message *init = initialize_receive(sockfd, &client);
+    if (init)
     {
         printf("File transfer initialized.\n");
+        printf("control message:\n");
+        printf("msg->type: %d\n", init->type);
+        printf("msg->ack: %d\n", init->ack);
+        printf("msg->seq: %d\n", init->seq_num);
+        printf("msg->size: %d\n", init->fsize);
+        printf("msg->fname_len: %d\n", init->fname_len);
+        printf("msg->fname: %s\n", init->fname);
+
+        return 1;
     }
 
-    // Return status of file transfer.
-    if (1)
-        return 1;
-    else
-        return 0;
+    // If transfer fails, return 0.
+    return 0;
 }

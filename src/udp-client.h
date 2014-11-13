@@ -6,6 +6,6 @@
 /*
  * Function prototypes.
  */
-int create_client_socket (char* hostname, char* port, host_t* server);
+int create_client_socket (char* hostname, char* port, host_t *server);
 
 #endif /* UDP_CLIENT_H */
