@@ -70,13 +70,13 @@ typedef struct rftp_message
 /*
  * Function prototypes.
  */
-rftp_message *create_init_message();
-rftp_message *create_exit_message();
-rftp_message *create_data_message();
+rftp_message *create_init_message(char *filename);
+rftp_message *create_term_message(int seq_num, char *fname, int fsize);
+rftp_message *create_data_message(int seq_num, int bytes_read, uint8_t buffer[DATA_MSS]);
 rftp_message *create_message();
 rftp_message *receive_rftp_message (int sockfd, host_t *source);
-rftp_message *receive_rftp_message_with_timeout(int sockfd, int timeout, host_t *source);
-int send_rftp_message (int sockfd, rftp_message *msg, host_t *dest);
+rftp_message *receive_rftp_message_with_timeout(int sockfd, host_t *source, int timeout);
+int send_rftp_message (int sockfd, host_t *dest, rftp_message *msg);
 int fsize(FILE *file);
 
 #endif /* RFTP_MESSAGES_H_ */

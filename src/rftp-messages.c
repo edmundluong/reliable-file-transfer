@@ -65,7 +65,7 @@ rftp_message *create_init_message (char *filename)
             // The name of the file being transferred.
             memcpy(msg->fname, filename, fname_len);
             // Length of the message is 16 bytes of headers and variable filename size.
-            msg->length = 16 + (fname_len/8);
+            msg->length = 16 + fname_len;
 
             // Return initialization message.
             return (rftp_message*) msg;
@@ -80,7 +80,7 @@ rftp_message *create_init_message (char *filename)
 /*
  * Creates a termination control message to signal the end of a file transfer session.
  */
-rftp_message *create_term_message (int seq_num, int fsize, char *fname)
+rftp_message *create_term_message (int seq_num, char *fname, int fsize)
 {
     control_message *msg = (control_message*) create_message();
     if (msg)
@@ -99,7 +99,7 @@ rftp_message *create_term_message (int seq_num, int fsize, char *fname)
         // The name of the file being transferred.
         memcpy(msg->fname, fname, fname_len);
         // Length of the message is 16 bytes of headers and variable filename size.
-        msg->length = 16 + (fname_len/8);
+        msg->length = 16 + fname_len;
     }
 
     // Return termination message.
@@ -109,15 +109,26 @@ rftp_message *create_term_message (int seq_num, int fsize, char *fname)
 /*
  * Creates an empty data message.
  */
-rftp_message *create_data_message ()
+rftp_message *create_data_message (int seq_num, int bytes_read, uint8_t buffer[DATA_MSS])
 {
     data_message *msg = (data_message*) create_message();
     if (msg)
     {
-        msg->type = 3;  // Data message is always type 3.
-        msg->ack = 0;  // Message is unacknowledged on creation.
+        // Data message is always type 3.
+        msg->type = (uint8_t) DATA_MSG;
+        // Sequence number of the message.
+        msg->seq_num = htons((uint16_t) seq_num);
+        // Message is unacknowledged on creation.
+        msg->ack = (uint8_t) NAK;
+        // The length of the data in the buffer.
+        msg->data_len = htonl((uint32_t) bytes_read);
+        // The buffer of data to be transmitted.
+        memcpy(msg->data, buffer, bytes_read);
+        // Length of the message is 8 bytes of headers and variable data size.
+        msg->length = 12 + bytes_read;
     }
 
+    // Return data message.
     return (rftp_message*) msg;
 }
 
@@ -166,8 +177,7 @@ rftp_message *receive_rftp_message (int sockfd, host_t *source)
 /*
  * Receives a RFTP message from a host without timeout.
  */
-rftp_message *receive_rftp_message_with_timeout (int sockfd, int timeout,
-        host_t *source)
+rftp_message *receive_rftp_message_with_timeout (int sockfd, host_t *source, int timeout)
 {
     // Create the message and poll structures.
     rftp_message *msg = create_message();
@@ -210,7 +220,7 @@ rftp_message *receive_rftp_message_with_timeout (int sockfd, int timeout,
 /*
  * Sends a RFTP message to a host.
  */
-int send_rftp_message (int sockfd, rftp_message *msg, host_t *dest)
+int send_rftp_message (int sockfd, host_t *dest,  rftp_message *msg)
 {
     return sendto(sockfd, msg->buffer, msg->length, 0,
                   (struct sockaddr*) &dest->addr, dest->addr_len);

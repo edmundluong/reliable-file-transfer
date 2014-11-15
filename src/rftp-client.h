@@ -12,13 +12,20 @@
 #define RFTP_CLIENT_H
 
 #include "udp-sockets.h"
+#include "rftp-messages.h"
 
 /*
  * Function prototypes.
  */
+control_message *initialize_transfer (int sockfd, host_t *dest, char *filename,
+        int timeout, int verbose);
 int rftp_transfer_file (char *server_name, char *port_number, char *filename,
         int timeout, int verbose);
-int initialize_transfer (int sockfd, host_t *dest, char *filename, int timeout, int verbose);
-int send_file (int sockfd, host_t *dest, char *filename, int timeout, int verbose);
+int transfer_file (int sockfd, host_t *dest, char *filename, int filesize,
+        int timeout, int verbose);
+int end_transfer (int sockfd, host_t *dest, FILE *file, char *filename,
+        int filesize, int next_seq, int timeout, int verbose);
+int stop_and_wait_send (int sockfd, host_t* dest, rftp_message *msg,
+        int msg_type, int timeout, int verbose);
 
 #endif /* RFTP_CLIENT_H */
