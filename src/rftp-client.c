@@ -18,7 +18,7 @@
  * Attempts to initialize a file transfer to a UDP server. When the server does not
  * acknowledge an initialization request, another request will be sent when it timeouts.
  */
-int initialize_transfer (int sockfd, host_t *dest, int timeout, char *filename)
+int initialize_transfer (int sockfd, host_t *dest, char *filename, int timeout, int verbose)
 {
     // Construct an initialization message.
     rftp_message *init = create_init_message(filename);
@@ -65,22 +65,36 @@ int initialize_transfer (int sockfd, host_t *dest, int timeout, char *filename)
 }
 
 /*
+ * Transfer a file to the server.
+ */
+int send_file(int sockfd, host_t *dest, char *filename, int timeout, int verbose)
+{
+    int next_seq;
+
+    // TODO: Code to send data to server.
+
+    return 0;
+}
+
+/*
  * Transfers a file to the UDP server, via the Reliable File Transfer Protocol (RFTP).
  */
 int rftp_transfer_file (char *server_name, char *port_number, char *filename,
         int timeout, int verbose)
 {
+    host_t server;      // Server host.
+    int status = 0;     // Status of the file transfer.
+
     // Create a socket and listen on port number.
-    host_t server;
     int sockfd = create_client_socket(server_name, port_number, &server);
 
     // If the transfer was initialized, begin transferring the file.
-    if (initialize_transfer(sockfd, &server, timeout, filename))
+    if (initialize_transfer(sockfd, &server, filename, timeout, verbose))
     {
-        printf("Transfer of %s initialized.\n", filename);
-        return 1;
+        printf("Transfer of %s initialized...\n", filename);
+        status = send_file(sockfd, &server, filename, timeout, verbose);
     }
 
-    // If the transfer failed to send, return 0.
-    return 0;
+    // Return the status of the file transfer.
+    return status;
 }

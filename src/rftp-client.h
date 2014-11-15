@@ -16,7 +16,9 @@
 /*
  * Function prototypes.
  */
-int rftp_transfer_file(char *server_name, char *port_number, char *filename, int timeout, int verbose);
-int initialize_transfer (int sockfd, host_t *dest, int timeout, char *filename);
+int rftp_transfer_file (char *server_name, char *port_number, char *filename,
+        int timeout, int verbose);
+int initialize_transfer (int sockfd, host_t *dest, char *filename, int timeout, int verbose);
+int send_file (int sockfd, host_t *dest, char *filename, int timeout, int verbose);
 
 #endif /* RFTP_CLIENT_H */

@@ -14,7 +14,12 @@
 
 #define FILENAME_MSS 1460       // Filename maximum segment size.
 #define DATA_MSS 1464           // Data maximum segment size.
-#define RFTP_MSS 1468           // RFTP maximum segment size.
+#define RFTP_MSS 1472           // RFTP maximum segment size.
+#define INIT_MSG 1              // Initiation message for file transfer.
+#define TERM_MSG 2              // Termination message for file transfer.
+#define DATA_MSG 3              // Data message for file transfer.
+#define NAK 0                   // Unacknowledged message.
+#define ACK 1                   // Acknowledged message.
 
 #include <stdio.h>
 #include <stdint.h>
@@ -27,6 +32,7 @@
  */
 typedef struct rftp_control_message
 {
+    int length;                         // Length of the message.
     uint8_t type;                       // Type of RFTP message: initiation=1 or termination=2.
     uint8_t ack;                        // Acknowledgment identifier: sent=0 or ack=1.
     uint16_t seq_num;                   // Sequence number of the message: 0 or 1.
@@ -42,6 +48,7 @@ typedef struct rftp_control_message
  */
 typedef struct rftp_data_message
 {
+    int length;                 // Length of the message.
     uint8_t type;               // Type of RFTP message: data messages always have type=3.
     uint8_t ack;                // Acknowledgment identifier: sent=0 or ack=1.
     uint16_t seq_num;           // Sequence number of the message: 0 or 1.
@@ -56,7 +63,7 @@ typedef struct rftp_data_message
  */
 typedef struct rftp_message
 {
-    uint32_t length;            // Length of the message.
+    int length;                 // Length of the message.
     uint8_t buffer[RFTP_MSS];   // A sequence of buffer bytes.
 } rftp_message;
 

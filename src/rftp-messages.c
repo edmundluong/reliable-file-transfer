@@ -43,25 +43,36 @@ rftp_message *create_init_message (char *filename)
     // If the file exists, construct the rest of the initialization message.
     if (msg && (file = fopen(filename, "r")))
     {
-        // If the size of the file is valid, and can be sent.
+        // If the size of the file is valid and can be sent,
+        // create an init message.
         int size = fsize(file);
-        if (size <= MAX_FILE_SIZE)
+        int fname_len = strlen(filename);
+        fclose(file);
+        if (size > MAX_FILE_SIZE)
+            printf("ERROR: Cannot send files larger than 4GB.\n");
+        else
         {
-            msg->type = 1; // Initialization message is always type 1.
-            msg->seq_num = 0; // Initialization message is always seq 0.
-            msg->ack = 0; // Message is unacknowledged on creation.
-            msg->fsize = size; // The size of file being transferred.
-            msg->fname_len = strlen(filename); // The length of the filename.
-            memcpy(msg->fname, filename, msg->fname_len); // The name of the file being transferred.
+            // Initialization message is always type 1.
+            msg->type = (uint8_t) INIT_MSG;
+            // Initialization message is always seq 0.
+            msg->seq_num = htons((uint16_t) 0);
+            // Message is unacknowledged on creation.
+            msg->ack = (uint8_t) NAK;
+            // The size of file being transferred.
+            msg->fsize = htonl((uint32_t) size);
+            // The length of the filename.
+            msg->fname_len = htonl((uint32_t) fname_len);
+            // The name of the file being transferred.
+            memcpy(msg->fname, filename, fname_len);
+            // Length of the message is 16 bytes of headers and variable filename size.
+            msg->length = 16 + (fname_len/8);
 
-            // Return constructed initialization message.
-            fclose(file);
+            // Return initialization message.
             return (rftp_message*) msg;
         }
-
     }
 
-    // Else return NULL.
+    // If an error occurred, return NULL.
     free(msg);
     return NULL;
 }
@@ -69,15 +80,29 @@ rftp_message *create_init_message (char *filename)
 /*
  * Creates a termination control message to signal the end of a file transfer session.
  */
-rftp_message *create_exit_message ()
+rftp_message *create_term_message (int seq_num, int fsize, char *fname)
 {
     control_message *msg = (control_message*) create_message();
     if (msg)
     {
-        msg->type = 2;  // Termination message is always type 2.
-        msg->ack = 0;  // Message is unacknowledged on creation.
+        // Termination message is always type 2.
+        msg->type = (uint8_t) TERM_MSG;
+        // Sequence number of the message.
+        msg->seq_num = htons((uint16_t) seq_num);
+        // Message is unacknowledged on creation.
+        msg->ack = (uint8_t) NAK;
+        // The size of the file being transferred.
+        msg->fsize = htonl((uint32_t) fsize);
+        // The length of the filename.
+        int fname_len = strlen(fname);
+        msg->fname_len = htonl((uint32_t) fname_len);
+        // The name of the file being transferred.
+        memcpy(msg->fname, fname, fname_len);
+        // Length of the message is 16 bytes of headers and variable filename size.
+        msg->length = 16 + (fname_len/8);
     }
 
+    // Return termination message.
     return (rftp_message*) msg;
 }
 
