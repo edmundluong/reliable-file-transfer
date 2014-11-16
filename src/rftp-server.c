@@ -14,9 +14,9 @@
 #include "udp-sockets.h"
 #include "udp-server.h"
 
-#define OUTPUTTED -1
-#define PASS 1
-#define FAIL 0
+#define OUTPUTTED -1    // Status code for outputted progress pecentages
+#define PASS 1          // A passing status
+#define FAIL 0          // A failing status
 
 /*
  * Helper method to create the output directory and target file.
