@@ -72,7 +72,7 @@ int stop_and_wait_send (int sockfd, host_t* dest, rftp_message *msg,
                         && (ntohs(control->seq_num) == ntohs(orig->seq_num)))
                 {
                     result = PASS;
-                    response = NULL;
+                    control = NULL;
                     break;
                 }
             }
@@ -96,9 +96,7 @@ int stop_and_wait_send (int sockfd, host_t* dest, rftp_message *msg,
         if (verbose) verbose_msg_output(SENT, msg_type, msg);
     }
     // Free allocated memory and return the result of the operation.
-    if (response) free(response);
-    if (control) free(control);
-    if (data) free(data);
+    free(response);
     return result;
 }
 
@@ -113,9 +111,11 @@ int end_transfer (int sockfd, host_t *dest, FILE *file, char *filename,
     if ((term = create_term_message(next_seq, filename, filesize)))
     {
         // Send termination message to server using Stop-and-Wait.
-        if (stop_and_wait_send(sockfd, dest, term, TERM_MSG, timeout, verbose)) result = PASS;
+        if (stop_and_wait_send(sockfd, dest, term, TERM_MSG, timeout, verbose))
+            result = PASS;
     }
-    // If an error occurred, return 0.
+
+    // If an error occurred, return a failure status.
     free(term);
     return result;
 }

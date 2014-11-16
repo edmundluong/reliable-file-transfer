@@ -166,8 +166,7 @@ int receive_file (int sockfd, host_t *source, char *filename, int filesize,
         term = NULL;
     }
     // Free allocated memory and return the status of the file transfer.
-    if (msg) free(msg);
-    if (term) free(term);
+    free(msg);
     return status;
 }
 
