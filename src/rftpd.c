@@ -62,14 +62,9 @@ int main (int argc, char **argv)
         printf("Sample usage: %s [OPTIONS...] [OUTPUTDIR]\n", argv[0]);
         exit(EXIT_FAILURE);
     }
-
     // Receive a file transfer from the client and exit the program.
     if (rftp_receive_file(port_number, output_dir, time_wait, verbose_flag))
-    {
         exit(EXIT_SUCCESS);
-    }
     else
-    {
         exit(EXIT_FAILURE);
-    }
 }

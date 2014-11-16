@@ -65,7 +65,7 @@ rftp_message *create_init_message (char *filename)
             // The name of the file being transferred.
             memcpy(msg->fname, filename, fname_len);
             // Length of the message is 16 bytes of headers and variable filename size.
-            msg->length = 16 + fname_len;
+            msg->length = 12 + fname_len;
 
             // Return initialization message.
             return (rftp_message*) msg;
@@ -99,7 +99,7 @@ rftp_message *create_term_message (int seq_num, char *fname, int fsize)
         // The name of the file being transferred.
         memcpy(msg->fname, fname, fname_len);
         // Length of the message is 16 bytes of headers and variable filename size.
-        msg->length = 16 + fname_len;
+        msg->length = 12 + fname_len;
     }
 
     // Return termination message.
@@ -109,7 +109,8 @@ rftp_message *create_term_message (int seq_num, char *fname, int fsize)
 /*
  * Creates an empty data message.
  */
-rftp_message *create_data_message (int seq_num, int bytes_read, uint8_t buffer[DATA_MSS])
+rftp_message *create_data_message (int seq_num, int bytes_read,
+        uint8_t buffer[DATA_MSS])
 {
     data_message *msg = (data_message*) create_message();
     if (msg)
@@ -125,7 +126,7 @@ rftp_message *create_data_message (int seq_num, int bytes_read, uint8_t buffer[D
         // The buffer of data to be transmitted.
         memcpy(msg->data, buffer, bytes_read);
         // Length of the message is 8 bytes of headers and variable data size.
-        msg->length = 12 + bytes_read;
+        msg->length = 8 + bytes_read;
     }
 
     // Return data message.
@@ -177,14 +178,12 @@ rftp_message *receive_rftp_message (int sockfd, host_t *source)
 /*
  * Receives a RFTP message from a host without timeout.
  */
-rftp_message *receive_rftp_message_with_timeout (int sockfd, host_t *source, int timeout)
+rftp_message *receive_rftp_message_with_timeout (int sockfd, host_t *source,
+        int timeout)
 {
     // Create the message and poll structures.
     rftp_message *msg = create_message();
-    struct pollfd fd = {
-            .fd = sockfd,
-            .events = POLLIN
-    };
+    struct pollfd fd = { .fd = sockfd, .events = POLLIN };
 
     // Poll the socket for specified time.
     int retval = poll(&fd, 1, timeout);
@@ -195,7 +194,8 @@ rftp_message *receive_rftp_message_with_timeout (int sockfd, host_t *source, int
         // Length of the remote IP structure.
         source->addr_len = sizeof(source->addr);
 
-        // Read message, storing its contents in msg->buffer and the source address in source->addr.
+        // Read message, storing its contents in msg->buffer
+        // and the source address in source->addr.
         msg->length = recvfrom(sockfd, msg->buffer, sizeof(msg->buffer), 0,
                                (struct sockaddr*) &source->addr,
                                &source->addr_len);
@@ -220,7 +220,7 @@ rftp_message *receive_rftp_message_with_timeout (int sockfd, host_t *source, int
 /*
  * Sends a RFTP message to a host.
  */
-int send_rftp_message (int sockfd, host_t *dest,  rftp_message *msg)
+int send_rftp_message (int sockfd, host_t *dest, rftp_message *msg)
 {
     return sendto(sockfd, msg->buffer, msg->length, 0,
                   (struct sockaddr*) &dest->addr, dest->addr_len);

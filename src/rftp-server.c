@@ -23,6 +23,7 @@ FILE *create_dir_and_file (char *output_dir, char *filename)
     char* path = malloc(strlen(output_dir) + strlen(filename) + 2);
     if (path)
     {
+        path[0] = 0;
         strcat(path, output_dir);
         strcat(path, "/");
         strcat(path, filename);
@@ -30,7 +31,6 @@ FILE *create_dir_and_file (char *output_dir, char *filename)
     // Create the directory and return the file pointer.
     mkdir(output_dir, 0700);
     FILE* file = fopen(path, "wb");
-    printf("full path: %s\n", path);
     free(path);
     return file;
 }
@@ -76,7 +76,7 @@ int end_receive (int sockfd, host_t *source, control_message *term,
 
     // Acknowledge the termination message and send it back to client.
     term->ack = ACK;
-    int retval = send_rftp_message(sockfd, source,  (rftp_message*) term);
+    int retval = send_rftp_message(sockfd, source, (rftp_message*) term);
 
     // Go into a waiting state for any duplicate termination requests.
     control_message *dupe;
@@ -102,11 +102,11 @@ int end_receive (int sockfd, host_t *source, control_message *term,
 int receive_file (int sockfd, host_t *source, char *filename, int filesize,
         char *output_dir, int time_wait, int verbose)
 {
-    control_message *term;      // A termination message.
-    data_message *data;         // A data message.
-    FILE *target;               // The target file.
-    int next_seq = 1;           // The next expected sequence number.
-    int status = 1;             // The status of the file transfer.
+    control_message *term = NULL;       // A termination message.
+    data_message *data = NULL;          // A data message.
+    FILE *target = NULL;                // The target file.
+    int next_seq = 1;                   // The next expected sequence number.
+    int status = 1;                     // The status of the file transfer.
 
     // Create the output directory and output file.
     target = create_dir_and_file(output_dir, filename);
@@ -142,11 +142,15 @@ int receive_file (int sockfd, host_t *source, char *filename, int filesize,
     if (term->type == TERM_MSG)
     {
         status = end_receive(sockfd, source, term, target, time_wait, verbose);
+        term = NULL;
     }
     // Free allocated memory and return the status of the file transfer.
-    free(msg);
-    free(term);
-    free(data);
+    if (msg)
+        free(msg);
+    if (term)
+        free(term);
+    if (data)
+        free(data);
     return status;
 }
 
@@ -156,14 +160,15 @@ int receive_file (int sockfd, host_t *source, char *filename, int filesize,
 int rftp_receive_file (char *port_number, char *output_dir, int time_wait,
         int verbose)
 {
-    host_t client;      // Client host.
-    char *filename;     // Name of the file being transferred.
-    int filesize;       // Size of the file being transferred.
-    int status = 0;     // Status of the file transfer.
+    host_t client;              // Client host.
+    char *filename = NULL;      // Name of the file being transferred.
+    int filesize;               // Size of the file being transferred.
+    int status = 0;             // Status of the file transfer.
 
     // Create a socket and listen on port number.
     int sockfd = create_server_socket(port_number);
-    printf("Listening on port %s...\n", port_number);
+    printf("Listening on port %s for a file transfer request ...\n",
+           port_number);
 
     // If a file transfer was initialized.
     control_message *init = initialize_receive(sockfd, &client, verbose);
@@ -173,6 +178,7 @@ int rftp_receive_file (char *port_number, char *output_dir, int time_wait,
         filesize = ntohl(init->fsize);
         filename = malloc(ntohl(init->fname_len) + 1);
         memcpy(filename, init->fname, ntohl(init->fname_len));
+        filename[ntohl(init->fname_len)] = '\0';
 
         // Receive the file from the client.
         printf("File transfer initialized.\n\n");
@@ -181,11 +187,17 @@ int rftp_receive_file (char *port_number, char *output_dir, int time_wait,
         status = receive_file(sockfd, &client, filename, filesize, output_dir,
                               time_wait, verbose);
 
-        // Free allocated memory and signal a successful file transfer.
-        free(filename);
-        free(init);
+        // Report the status of the file transfer.
+        if (status)
+            printf("\n%s was successfully received from %s into %s.\n",
+                   filename, client.friendly_ip, output_dir);
+        else
+            printf("\nERROR: Could not successfully receive %s from %s.\n",
+                   filename, client.friendly_ip);
     }
 
     // Return status of the file transfer.
+    free(filename);
+    free(init);
     return status;
 }

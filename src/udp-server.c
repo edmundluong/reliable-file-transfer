@@ -12,35 +12,35 @@ int bind_socket (struct addrinfo* addr_list)
     int sockfd;
 
     // Iterate through each addrinfo in the list; stop when we successfully bind
-    // to one
+    // to one.
     for (addr = addr_list; addr != NULL; addr = addr->ai_next)
     {
-        // Open a socket
+        // Open a socket.
         sockfd = socket(addr->ai_family, addr->ai_socktype, addr->ai_protocol);
 
-        // Try the next address if we couldn't open a socket
+        // Try the next address if we couldn't open a socket.
         if (sockfd == -1)
             continue;
 
-        // Try to bind the socket to the address/port
+        // Try to bind the socket to the address/port.
         if (bind(sockfd, addr->ai_addr, addr->ai_addrlen) == -1)
         {
-            // If binding fails, close the socket, and try the next address
+            // If binding fails, close the socket, and try the next address.
             close(sockfd);
             continue;
         }
         else
         {
             // Otherwise, we've bound the address/port to the socket, so stop
-            // processing
+            // processing.
             break;
         }
     }
 
-    // Free the memory allocated to the addrinfo list
+    // Free the memory allocated to the addrinfo list.
     freeaddrinfo(addr_list);
 
-    // If addr is NULL, we tried every addrinfo and weren't able to bind to any
+    // If addr is NULL, we tried every addrinfo and weren't able to bind to any.
     if (addr == NULL)
     {
         perror("Unable to bind");
@@ -48,7 +48,7 @@ int bind_socket (struct addrinfo* addr_list)
     }
     else
     {
-        // Otherwise, return the socket descriptor
+        // Otherwise, return the socket descriptor.
         return sockfd;
     }
 

@@ -28,7 +28,7 @@ control_message *initialize_transfer (int sockfd, host_t *dest, char *filename,
         // Send init message to server using Stop-and-Wait.
         if (stop_and_wait_send(sockfd, dest, init, INIT_MSG, timeout, verbose))
         {
-            return init;
+            return (control_message*) init;
         }
     }
 
@@ -45,10 +45,10 @@ control_message *initialize_transfer (int sockfd, host_t *dest, char *filename,
 int stop_and_wait_send (int sockfd, host_t* dest, rftp_message *msg,
         int msg_type, int timeout, int verbose)
 {
-    rftp_message *response;     // The RFTP response message from the server.
-    control_message *control;   // A RFTP control message.
-    data_message *data;         // A RFTP data message.
-    int result = 0;             // The result of the operation.
+    rftp_message *response = NULL;      // The RFTP response message from the server.
+    control_message *control = NULL;    // A RFTP control message.
+    data_message *data = NULL;          // A RFTP data message.
+    int result = 0;                     // The result of the operation.
 
     // Send the message to the server.
     int retval = send_rftp_message(sockfd, dest, msg);
@@ -68,6 +68,7 @@ int stop_and_wait_send (int sockfd, host_t* dest, rftp_message *msg,
                         && (control->ack == ACK))
                 {
                     result = 1;
+                    response = NULL;
                     break;
                 }
             }
@@ -82,6 +83,7 @@ int stop_and_wait_send (int sockfd, host_t* dest, rftp_message *msg,
                         && (data->ack == ACK))
                 {
                     result = 1;
+                    data = NULL;
                     break;
                 }
             }
@@ -90,9 +92,12 @@ int stop_and_wait_send (int sockfd, host_t* dest, rftp_message *msg,
         retval = send_rftp_message(sockfd, dest, msg);
     }
     // Free allocated memory and return the result of the operation.
-    free(response);
-    free(control);
-    free(data);
+    if (response)
+        free(response);
+    if (control)
+        free(control);
+    if (data)
+        free(data);
     return result;
 }
 
@@ -122,11 +127,11 @@ int end_transfer (int sockfd, host_t *dest, FILE *file, char *filename,
 int transfer_file (int sockfd, host_t *dest, char *filename, int filesize,
         int timeout, int verbose)
 {
-    FILE *file;                 // The file to be transferred.
-    rftp_message *packet;       // Packet of file data to be transferred.
-    uint8_t buffer[DATA_MSS];   // Buffer to hold data.
-    int next_seq = 1;           // The next sequence number.
-    int status = 1;             // The status of the file transfer.
+    FILE *file;                         // The file to be transferred.
+    rftp_message *packet = NULL;        // Packet of file data to be transferred.
+    uint8_t buffer[DATA_MSS];           // Buffer to hold data.
+    int next_seq = 1;                   // The next sequence number.
+    int status = 1;                     // The status of the file transfer.
 
     // Open the file to be transferred.
     if ((file = fopen(filename, "rb")))
@@ -181,10 +186,10 @@ int transfer_file (int sockfd, host_t *dest, char *filename, int filesize,
 int rftp_transfer_file (char *server_name, char *port_number, char *filename,
         int timeout, int verbose)
 {
-    host_t server;              // Server host.
-    control_message *init;      // Initialization message.
-    int filesize;               // The size of the file being transferred.
-    int status = 0;             // Status of the file transfer.
+    host_t server;                      // Server host.
+    control_message *init = NULL;       // Initialization message.
+    int filesize;                       // The size of the file being transferred.
+    int status = 0;                     // Status of the file transfer.
 
     // Create a socket and listen on port number.
     int sockfd = create_client_socket(server_name, port_number, &server);
@@ -194,17 +199,13 @@ int rftp_transfer_file (char *server_name, char *port_number, char *filename,
     // If the transfer was initialized, begin transferring the file.
     if ((init = initialize_transfer(sockfd, &server, filename, timeout, verbose)))
     {
+        // Get the filesize of the file transfer.
         filesize = ntohl(init->fsize);
         printf("File transfer initialized.\n\n");
 
-        printf("control message:\n");
-        printf("msg->type: %d\n", init->type);
-        printf("msg->ack: %d\n", init->ack);
-        printf("msg->seq: %d\n", init->seq_num);
-        printf("msg->fsize: %d\n", ntohl(init->fsize));
-        printf("msg->fname_len: %d\n", ntohl(init->fname_len));
-        printf("msg->fname: %s\n", init->fname);
-
+        // Transfer the file to the server.
+        printf("Sending %s (%d B) to %s ...\n", filename, filesize,
+               server_name);
         status = transfer_file(sockfd, &server, filename, filesize, timeout,
                                verbose);
     }

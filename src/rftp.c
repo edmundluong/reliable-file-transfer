@@ -74,12 +74,12 @@ int main (int argc, char **argv)
     // Transfer the file to the server and exit the program.
     if (rftp_transfer_file(server, port_number, filename, timeout, verbose_flag))
     {
-        printf("%s was successfully transferred.\n", filename);
+        printf("\n%s was successfully sent to %s.\n", filename, server);
         exit(EXIT_SUCCESS);
     }
     else
     {
-        printf("ERROR: %s failed to transfer.\n", filename);
+        printf("\nERROR: Could not successfully send %s to %s.\n", filename, server);
         exit(EXIT_FAILURE);
     }
 }
