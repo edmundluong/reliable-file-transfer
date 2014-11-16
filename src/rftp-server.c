@@ -153,9 +153,9 @@ int receive_file (int sockfd, host_t *source, char *filename, int filesize,
 
             // Update the next expected sequence number.
             next_seq = (next_seq == 1) ? 0 : 1;
-            free(msg);
         }
         // Receive another message from the client.
+        free(msg);
         msg = receive_rftp_message(sockfd, source);
         if (verbose) verbose_msg_output(RECV, ((data_message*) msg)->type, msg);
     }
@@ -182,12 +182,12 @@ int output_received_progress (int bytes_recv, int total_bytes, int last_mult)
     if ((pct % OUTPUT_PCT == 0) && (multiple != last_mult))
     {
         if (total_bytes < kB)
-            printf("%d/%d\tB received ..... %d%% complete\n", bytes_recv, total_bytes, pct);
+            printf("%3d/%3d B received ..... %2d%% complete\n", bytes_recv, total_bytes, pct);
         else if (total_bytes >= kB && total_bytes < MB)
-            printf("%d/%d\tkB received ..... %d%% complete\n",
+            printf("%3d/%3d kB received ..... %2d%% complete\n",
                    B_TO_KB(bytes_recv), B_TO_KB(total_bytes), pct);
         else
-            printf("%d/%d\tMB received ..... %d%% complete\n",
+            printf("%4d/%4d MB received ..... %2d%% complete\n",
                    B_TO_MB(bytes_recv), B_TO_MB(total_bytes), pct);
 
         return multiple;

@@ -199,12 +199,12 @@ int output_sent_progress (int bytes_sent, int total_bytes, int last_mult)
     if ((percentage % OUTPUT_PCT == 0) && (multiple != last_mult))
     {
         if (total_bytes < kB)
-            printf("%d/%d\tB sent ..... %d%% complete\n", bytes_sent, total_bytes, percentage);
+            printf("%3d/%3d B sent ..... %2d%% complete\n", bytes_sent, total_bytes, percentage);
         else if (total_bytes >= kB && total_bytes < MB)
-            printf("%d/%d\tkB sent ..... %d%% complete\n", B_TO_KB(bytes_sent),
+            printf("%3d/%3d kB sent ..... %2d%% complete\n", B_TO_KB(bytes_sent),
                    B_TO_KB(total_bytes), percentage);
         else
-            printf("%d/%d\tMB sent ..... %d%% complete\n", B_TO_MB(bytes_sent),
+            printf("%4d/%4d MB sent ..... %2d%% complete\n", B_TO_MB(bytes_sent),
                    B_TO_MB(total_bytes), percentage);
 
         // Return the newly outputted multiple.
