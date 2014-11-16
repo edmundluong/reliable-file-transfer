@@ -12,14 +12,19 @@
 #ifndef RFTP_MESSAGES_H
 #define RFTP_MESSAGES_H
 
-#define FILENAME_MSS 1460       // Filename maximum segment size.
-#define DATA_MSS 1464           // Data maximum segment size.
-#define RFTP_MSS 1472           // RFTP maximum segment size.
-#define INIT_MSG 1              // Initiation message for file transfer.
-#define TERM_MSG 2              // Termination message for file transfer.
-#define DATA_MSG 3              // Data message for file transfer.
-#define NAK 0                   // Unacknowledged message.
-#define ACK 1                   // Acknowledged message.
+#define FILENAME_MSS 1460               // Filename maximum segment size
+#define DATA_MSS 1464                   // Data maximum segment size
+#define RFTP_MSS 1472                   // RFTP maximum segment size
+#define INIT_MSG 1                      // Initiation message for file transfer
+#define TERM_MSG 2                      // Termination message for file transfer
+#define DATA_MSG 3                      // Data message for file transfer
+#define NAK 0                           // Unacknowledged message
+#define ACK 1                           // Acknowledged message
+#define OUTPUT_PCT 5                    // The percentage interval for the output
+#define B_TO_KB(B) B/1000               // Converts bytes to kilobytes
+#define B_TO_MB(B) B/1000000            // Converts bytes to megabytes
+#define kB 1000                         // Kilobytes
+#define MB 1000000                      // Megabytes
 
 #include <stdio.h>
 #include <stdint.h>
@@ -32,13 +37,13 @@
  */
 typedef struct rftp_control_message
 {
-    int length;                         // Length of the message.
-    uint8_t type;                       // Type of RFTP message: initiation=1 or termination=2.
-    uint8_t ack;                        // Acknowledgment identifier: sent=0 or ack=1.
-    uint16_t seq_num;                   // Sequence number of the message: 0 or 1.
-    uint32_t fsize;                     // Size of the file (in bytes) to be transferred.
-    uint32_t fname_len;                 // Number of characters in the Filename field.
-    uint8_t fname[FILENAME_MSS];        // Name of the file to be transferred.
+    int length;                         // Length of the message
+    uint8_t type;                       // Type of RFTP message: initiation=1 or termination=2
+    uint8_t ack;                        // Acknowledgment identifier: sent=0 or ack=1
+    uint16_t seq_num;                   // Sequence number of the message: 0 or 1
+    uint32_t fsize;                     // Size of the file (in bytes) to be transferred
+    uint32_t fname_len;                 // Number of characters in the Filename field
+    uint8_t fname[FILENAME_MSS];        // Name of the file to be transferred
 } control_message;
 
 /*
@@ -48,12 +53,12 @@ typedef struct rftp_control_message
  */
 typedef struct rftp_data_message
 {
-    int length;                 // Length of the message.
-    uint8_t type;               // Type of RFTP message: data messages always have type=3.
-    uint8_t ack;                // Acknowledgment identifier: sent=0 or ack=1.
-    uint16_t seq_num;           // Sequence number of the message: 0 or 1.
-    uint32_t data_len;          // The number of bytes of data in the Data field.
-    uint8_t data[DATA_MSS];     // A sequence of file data bytes.
+    int length;                 // Length of the message
+    uint8_t type;               // Type of RFTP message: data messages always have type=3
+    uint8_t ack;                // Acknowledgment identifier: sent=0 or ack=1
+    uint16_t seq_num;           // Sequence number of the message: 0 or 1
+    uint32_t data_len;          // The number of bytes of data in the Data field
+    uint8_t data[DATA_MSS];     // A sequence of file data bytes
 } data_message;
 
 /*
@@ -63,8 +68,8 @@ typedef struct rftp_data_message
  */
 typedef struct rftp_message
 {
-    int length;                 // Length of the message.
-    uint8_t buffer[RFTP_MSS];   // A sequence of buffer bytes.
+    int length;                 // Length of the message
+    uint8_t buffer[RFTP_MSS];   // A sequence of buffer bytes
 } rftp_message;
 
 /*

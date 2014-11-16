@@ -71,6 +71,11 @@ rftp_message *create_init_message (char *filename)
             return (rftp_message*) msg;
         }
     }
+    else if (!file)
+    {
+        printf("ERROR: %s could not sent, file does not exist.\n", filename);
+        exit(EXIT_FAILURE);
+    }
 
     // If an error occurred, return NULL.
     free(msg);

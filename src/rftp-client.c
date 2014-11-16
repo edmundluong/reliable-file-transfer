@@ -45,10 +45,10 @@ control_message *initialize_transfer (int sockfd, host_t *dest, char *filename,
 int stop_and_wait_send (int sockfd, host_t* dest, rftp_message *msg,
         int msg_type, int timeout, int verbose)
 {
-    rftp_message *response = NULL;      // The RFTP response message from the server.
-    control_message *control = NULL;    // A RFTP control message.
-    data_message *data = NULL;          // A RFTP data message.
-    int result = 0;                     // The result of the operation.
+    rftp_message *response = NULL;  // The RFTP response message from the server
+    control_message *control = NULL;    // A RFTP control message
+    data_message *data = NULL;          // A RFTP data message
+    int result = 0;                     // The result of the operation
 
     // Send the message to the server.
     int retval = send_rftp_message(sockfd, dest, msg);
@@ -104,8 +104,8 @@ int stop_and_wait_send (int sockfd, host_t* dest, rftp_message *msg,
 int end_transfer (int sockfd, host_t *dest, FILE *file, char *filename,
         int filesize, int next_seq, int timeout, int verbose)
 {
-    int result = 0;     // The result of the termination.
-    rftp_message *term; // A termination message.
+    int result = 0;     // The result of the termination
+    rftp_message *term; // A termination message
 
     // Close the file and create a termination message.
     fclose(file);
@@ -127,17 +127,20 @@ int end_transfer (int sockfd, host_t *dest, FILE *file, char *filename,
 int transfer_file (int sockfd, host_t *dest, char *filename, int filesize,
         int timeout, int verbose)
 {
-    FILE *file;                         // The file to be transferred.
-    rftp_message *packet = NULL;        // Packet of file data to be transferred.
-    uint8_t buffer[DATA_MSS];           // Buffer to hold data.
-    int next_seq = 1;                   // The next sequence number.
-    int status = 1;                     // The status of the file transfer.
+    FILE *file;                         // The file to be transferred
+    rftp_message *packet = NULL;        // Packet of file data to be transferred
+    uint8_t buffer[DATA_MSS];           // Buffer to hold data
+    int next_seq = 1;                   // The next sequence number
+    int status = 1;                     // The status of the file transfer
+    int bytes_sent = 0;              // The total bytes successfully transferred
+    int last_mult = -1;          // The last reported multiple of percent output
 
     // Open the file to be transferred.
     if ((file = fopen(filename, "rb")))
     {
         // While the end of the file has not been reached.
         int bytes_read;
+        int mult;
         while (!feof(file))
         {
             // Read data from the file.
@@ -155,10 +158,17 @@ int transfer_file (int sockfd, host_t *dest, char *filename, int filesize,
                 // Create a data packet and send it to the server using Stop-and-Wait.
                 if ((packet = create_data_message(next_seq, bytes_read, buffer)))
                 {
-                    // If the packet is acknowledged, update the sequence number.
+                    // If the packet is acknowledged.
                     if (stop_and_wait_send(sockfd, dest, packet, DATA_MSG,
                                            timeout, verbose))
                     {
+                        // Output the percentage.
+                        bytes_sent += bytes_read;
+                        mult = output_sent_progress(bytes_sent, filesize,
+                                                    last_mult);
+                        if (mult != -1)
+                            last_mult = mult;
+                        // Update the sequence number.
                         next_seq = (next_seq == 1) ? 0 : 1;
                     }
                     // An error occurred while sending the packet.
@@ -181,15 +191,41 @@ int transfer_file (int sockfd, host_t *dest, char *filename, int filesize,
 }
 
 /*
+ * Outputs the percentage of the file transfer.
+ */
+int output_sent_progress (int bytes_sent, int total_bytes, int last_mult)
+{
+    int percentage = 100 * ((double) bytes_sent / (double) total_bytes);
+    int multiple = (percentage / OUTPUT_PCT);
+
+    // If the percentage has not been printed out before, print the progress.
+    if ((percentage % OUTPUT_PCT == 0) && (multiple != last_mult))
+    {
+        if (total_bytes < kB)
+            printf("%d/%d\tB sent ..... %d%% complete\n", bytes_sent,
+                   total_bytes, percentage);
+        else if (total_bytes >= kB && total_bytes < MB)
+            printf("%d/%d\tkB sent ..... %d%% complete\n",
+                   B_TO_KB(bytes_sent), B_TO_KB(total_bytes), percentage);
+        else
+            printf("%d/%d\tMB sent ..... %d%% complete\n",
+                   B_TO_MB(bytes_sent), B_TO_MB(total_bytes), percentage);
+        return multiple;
+    }
+
+    return -1;
+}
+
+/*
  * Transfers a file to the UDP server, via the Reliable File Transfer Protocol (RFTP).
  */
 int rftp_transfer_file (char *server_name, char *port_number, char *filename,
         int timeout, int verbose)
 {
-    host_t server;                      // Server host.
-    control_message *init = NULL;       // Initialization message.
-    int filesize;                       // The size of the file being transferred.
-    int status = 0;                     // Status of the file transfer.
+    host_t server;                      // Server host
+    control_message *init = NULL;       // Initialization message
+    int filesize;                      // The size of the file being transferred
+    int status = 0;                     // Status of the file transfer
 
     // Create a socket and listen on port number.
     int sockfd = create_client_socket(server_name, port_number, &server);
@@ -203,9 +239,18 @@ int rftp_transfer_file (char *server_name, char *port_number, char *filename,
         filesize = ntohl(init->fsize);
         printf("File transfer initialized.\n\n");
 
+        // Give information on file transfer.
+        if (filesize < kB)
+            printf("Sending %s (%d B) to %s ...\n", filename, filesize,
+                   server_name);
+        else if (filesize >= kB && filesize < MB)
+            printf("Sending %s (%d kB) to %s ...\n", filename,
+                   B_TO_KB(filesize), server_name);
+        else
+            printf("Sending %s (%d MB) to %s ...\n", filename,
+                   B_TO_MB(filesize), server_name);
+
         // Transfer the file to the server.
-        printf("Sending %s (%d B) to %s ...\n", filename, filesize,
-               server_name);
         status = transfer_file(sockfd, &server, filename, filesize, timeout,
                                verbose);
     }

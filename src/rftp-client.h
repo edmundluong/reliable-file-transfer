@@ -27,5 +27,6 @@ int end_transfer (int sockfd, host_t *dest, FILE *file, char *filename,
         int filesize, int next_seq, int timeout, int verbose);
 int stop_and_wait_send (int sockfd, host_t* dest, rftp_message *msg,
         int msg_type, int timeout, int verbose);
+int output_sent_progress (int bytes_sent, int total_bytes, int last_mult);
 
 #endif /* RFTP_CLIENT_H */
