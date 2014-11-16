@@ -19,6 +19,7 @@
 #define MAX_FILE_SIZE 4000000000        // Maximum transferable file size is 4GB
 #define DATA_HEADER 8                   // The header size of a data message
 #define CTRL_HEADER 12                  // The header size of a control message
+#define DIRECTORY_SIZE -1               // A directory has a filesize of -1
 
 /*
  * Helper method to determine a file's size.
@@ -53,6 +54,10 @@ rftp_message *create_init_message (char *filename)
         if (size > MAX_FILE_SIZE)
         {
             printf("\nERROR: Cannot send files larger than 4GB.\n");
+        }
+        else if (size == DIRECTORY_SIZE)
+        {
+            printf("\nERROR: %s is a directory.\n", filename);
         }
         else
         {

@@ -147,7 +147,7 @@ int transfer_file (int sockfd, host_t *dest, char *filename, int filesize,
             // If there was a read error, output the error and exit the program.
             if (ferror(file))
             {
-                perror("File read error.\n");
+                perror("File read error: ");
                 status = FAIL;
                 break;
             }
@@ -179,7 +179,9 @@ int transfer_file (int sockfd, host_t *dest, char *filename, int filesize,
             }
         }
         // End the file transfer.
-        status = end_transfer(sockfd, dest, file, filename, filesize, next_seq, timeout, verbose);
+        if (status != FAIL)
+            status = end_transfer(sockfd, dest, file, filename,
+                                  filesize, next_seq, timeout, verbose);
     }
     // Return the status of the file transfer.
     return status;

@@ -136,7 +136,7 @@ int receive_file (int sockfd, host_t *source, char *filename, int filesize,
             fwrite(data->data, sizeof(uint8_t), ntohl(data->data_len), target);
             if (ferror(target))
             {
-                perror("File write error.\n");
+                perror("File write error: ");
                 fclose(target);
                 status = FAIL;
                 break;
@@ -244,7 +244,7 @@ int rftp_receive_file (char *port_number, char *output_dir, int time_wait,
             printf("\n%s was successfully received from %s into %s.\n",
                    filename, client.friendly_ip, output_dir);
         else
-            printf("\nERROR: Could not successfully receive %s from %s.\n",
+            printf("\nCould not successfully receive %s from %s.\n",
                    filename, client.friendly_ip);
     }
 

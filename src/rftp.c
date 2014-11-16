@@ -82,7 +82,7 @@ int main (int argc, char **argv)
     }
     else
     {
-        printf("\nERROR: Could not successfully send %s to %s.\n", filename, server);
+        printf("\nCould not successfully send %s to %s.\n", filename, server);
         exit(EXIT_FAILURE);
     }
 }
