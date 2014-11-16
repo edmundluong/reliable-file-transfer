@@ -43,6 +43,8 @@ control_message *initialize_receive (int sockfd, host_t *source, int verbose)
     // Receive a control message from client.
     control_message *msg = (control_message*) receive_rftp_message(sockfd,
                                                                    source);
+    if (verbose)
+        verbose_msg_output(RECV, msg->type, (rftp_message*) msg);
     if (msg)
     {
         // If the message is an initialization message.
@@ -51,7 +53,8 @@ control_message *initialize_receive (int sockfd, host_t *source, int verbose)
             // Acknowledge the message and send it back to the client.
             msg->ack = ACK;
             int retval = send_rftp_message(sockfd, source, (rftp_message*) msg);
-
+            if (verbose)
+                verbose_msg_output(SENT, msg->type, (rftp_message*) msg);
             // Return the message.
             if (retval != -1)
                 return msg;
@@ -73,24 +76,27 @@ int end_receive (int sockfd, host_t *source, control_message *term,
 
     // Close the target file.
     fclose(target);
-
     // Acknowledge the termination message and send it back to client.
     term->ack = ACK;
     int retval = send_rftp_message(sockfd, source, (rftp_message*) term);
-
+    if (verbose)
+        verbose_msg_output(SENT, term->type, (rftp_message*) term);
     // Go into a waiting state for any duplicate termination requests.
     control_message *dupe;
     while ((dupe = (control_message*) receive_rftp_message_with_timeout(
             sockfd, source, time_wait)) && retval != -1)
     {
+        if (verbose)
+            verbose_msg_output(RECV, dupe->type, (rftp_message*) dupe);
         // Resend termination acknowledgment.
         dupe->ack = ACK;
         retval = send_rftp_message(sockfd, source, (rftp_message*) dupe);
+        if (verbose)
+            verbose_msg_output(SENT, dupe->type, (rftp_message*) dupe);
     }
     // If any messages fail to send, signal an error.
     if (retval == -1)
         result = 0;
-
     // Return the result of the termination.
     free(dupe);
     return result;
@@ -108,8 +114,8 @@ int receive_file (int sockfd, host_t *source, char *filename, int filesize,
     int next_seq = 1;                   // The next expected sequence number
     int status = 1;                     // The status of the file transfer
     int bytes_recv = 0;                 // The total bytes received
-    int last_mult = -1;                 // The last multiple of percentage output
-    int curr_mult;                      // The current percentage multiple being returned
+    int last_mult = -1;                // The last multiple of percentage output
+    int curr_mult;             // The current percentage multiple being returned
 
     // Create the output directory and output file.
     target = create_dir_and_file(output_dir, filename);
@@ -117,8 +123,10 @@ int receive_file (int sockfd, host_t *source, char *filename, int filesize,
     rftp_message *msg = receive_rftp_message(sockfd, source);
     while ((term = (control_message*) msg)->type != TERM_MSG)
     {
-        // If the received data packet is not a duplicate, write the data to file.
         data = (data_message*) msg;
+        if (verbose)
+            verbose_msg_output(RECV, data->type, (rftp_message*) data);
+        // If the received data packet is not a duplicate, write the data to file.
         if (data->type == DATA_MSG && ntohs(data->seq_num) == next_seq)
         {
             // Write data to file.
@@ -133,15 +141,21 @@ int receive_file (int sockfd, host_t *source, char *filename, int filesize,
             // Acknowledge the data packet and send back to client.
             data->ack = ACK;
             send_rftp_message(sockfd, source, (rftp_message*) data);
+            if (verbose)
+                verbose_msg_output(SENT, data->type, (rftp_message*) data);
             // Give an output of received data.
             bytes_recv += ntohl(data->data_len);
-            curr_mult = output_received_progress(bytes_recv, filesize, last_mult);
-            if (curr_mult != -1) last_mult = curr_mult;
+            curr_mult = output_received_progress(bytes_recv, filesize,
+                                                 last_mult);
+            if (curr_mult != -1)
+                last_mult = curr_mult;
             // Update the next expected sequence number.
             next_seq = (next_seq == 1) ? 0 : 1;
         }
         // Receive another message from the client.
         msg = receive_rftp_message(sockfd, source);
+        if (verbose)
+            verbose_msg_output(RECV, ((data_message*) msg)->type, msg);
     }
     // If a termination message was given, end the file transfer.
     if (term->type == TERM_MSG)
@@ -200,7 +214,6 @@ int rftp_receive_file (char *port_number, char *output_dir, int time_wait,
     int sockfd = create_server_socket(port_number);
     printf("Listening on port %s for a file transfer request ...\n",
            port_number);
-
     // If a file transfer was initialized.
     control_message *init = initialize_receive(sockfd, &client, verbose);
     if (init)
@@ -232,7 +245,6 @@ int rftp_receive_file (char *port_number, char *output_dir, int time_wait,
             printf("\nERROR: Could not successfully receive %s from %s.\n",
                    filename, client.friendly_ip);
     }
-
     // Return status of the file transfer.
     free(filename);
     free(init);

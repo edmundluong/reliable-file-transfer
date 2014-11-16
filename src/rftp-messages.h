@@ -20,6 +20,9 @@
 #define DATA_MSG 3                      // Data message for file transfer
 #define NAK 0                           // Unacknowledged message
 #define ACK 1                           // Acknowledged message
+#define SENT 0                          // Sent message
+#define RECV 1                          // Received message
+
 #define OUTPUT_PCT 5                    // The percentage interval for the output
 #define B_TO_KB(B) B/1000               // Converts bytes to kilobytes
 #define B_TO_MB(B) B/1000000            // Converts bytes to megabytes
@@ -83,5 +86,6 @@ rftp_message *receive_rftp_message (int sockfd, host_t *source);
 rftp_message *receive_rftp_message_with_timeout(int sockfd, host_t *source, int timeout);
 int send_rftp_message (int sockfd, host_t *dest, rftp_message *msg);
 int fsize(FILE *file);
+void verbose_msg_output(int trans_type, int msg_type, rftp_message* msg);
 
 #endif /* RFTP_MESSAGES_H_ */

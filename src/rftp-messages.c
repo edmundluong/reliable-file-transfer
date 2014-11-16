@@ -16,7 +16,7 @@
 #include <poll.h>
 #include "rftp-messages.h"
 
-#define MAX_FILE_SIZE 4000000000 // Maximum transferrable file size is 4GB.
+#define MAX_FILE_SIZE 4000000000 // Maximum transferable file size is 4GB.
 
 /*
  * Helper method to determine a file's size.
@@ -49,7 +49,10 @@ rftp_message *create_init_message (char *filename)
         int fname_len = strlen(filename);
         fclose(file);
         if (size > MAX_FILE_SIZE)
-            printf("ERROR: Cannot send files larger than 4GB.\n");
+        {
+            printf(\n"ERROR: Cannot send files larger than 4GB.\n");
+            exit(EXIT_FAILURE);
+        }
         else
         {
             // Initialization message is always type 1.
@@ -73,7 +76,7 @@ rftp_message *create_init_message (char *filename)
     }
     else if (!file)
     {
-        printf("ERROR: %s could not sent, file does not exist.\n", filename);
+        printf("\nERROR: %s could not sent, file does not exist.\n", filename);
         exit(EXIT_FAILURE);
     }
 
@@ -188,8 +191,10 @@ rftp_message *receive_rftp_message_with_timeout (int sockfd, host_t *source,
 {
     // Create the message and poll structures.
     rftp_message *msg = create_message();
-    struct pollfd fd = { .fd = sockfd, .events = POLLIN };
-
+    struct pollfd fd = {
+            .fd = sockfd,
+            .events = POLLIN
+    };
     // Poll the socket for specified time.
     int retval = poll(&fd, 1, timeout);
 
@@ -198,7 +203,6 @@ rftp_message *receive_rftp_message_with_timeout (int sockfd, host_t *source,
     {
         // Length of the remote IP structure.
         source->addr_len = sizeof(source->addr);
-
         // Read message, storing its contents in msg->buffer
         // and the source address in source->addr.
         msg->length = recvfrom(sockfd, msg->buffer, sizeof(msg->buffer), 0,
@@ -220,6 +224,42 @@ rftp_message *receive_rftp_message_with_timeout (int sockfd, host_t *source,
     // If a message was not received, free the allocated memory and return NULL.
     free(msg);
     return NULL;
+}
+
+/*
+ * Verbose output
+ */
+void verbose_msg_output (int trans_type, int msg_type, rftp_message* msg)
+{
+
+    char *msg_t = NULL;                 // Message type
+    char *ack = NULL;                   // Acknowledgment of message
+    control_message *ctrl = NULL;       // Control message
+    data_message *data = NULL;          // Data message
+    int data_size = -1;                 // Data size of message
+
+    // Construct strings and display verbose output.
+    char *trans_t = (trans_type == SENT) ? "Sent" : "Received";
+    if (msg_type == INIT_MSG || msg_type == TERM_MSG)
+    {
+        if (msg_type == INIT_MSG)
+            msg_t = "INIT MSG";
+        if (msg_type == TERM_MSG)
+            msg_t = "TERM MSG";
+        ctrl = (control_message*) msg;
+        ack = (ctrl->ack == NAK) ? "NAK" : "ACK";
+        printf("%s %s[%d] ..... %s\n", trans_t, msg_t, ntohs(ctrl->seq_num),
+               ack);
+    }
+    if (msg_type == DATA_MSG)
+    {
+        msg_t = "DATA_MSG";
+        data = (data_message*) msg;
+        ack = (data->ack == NAK) ? "NAK" : "ACK";
+        data_size = ntohl(data->data_len);
+        printf("%s %s[%d] (%d B) ..... %s\n", trans_t, msg_t,
+               ntohs(data->seq_num), data_size, ack);
+    }
 }
 
 /*
