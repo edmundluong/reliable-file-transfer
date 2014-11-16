@@ -127,20 +127,20 @@ int end_transfer (int sockfd, host_t *dest, FILE *file, char *filename,
 int transfer_file (int sockfd, host_t *dest, char *filename, int filesize,
         int timeout, int verbose)
 {
-    FILE *file;                         // The file to be transferred
-    rftp_message *packet = NULL;        // Packet of file data to be transferred
+    FILE *file;                         // The file to be sent
+    rftp_message *packet = NULL;        // Packet of file data to be sent
     uint8_t buffer[DATA_MSS];           // Buffer to hold data
     int next_seq = 1;                   // The next sequence number
     int status = 1;                     // The status of the file transfer
-    int bytes_sent = 0;              // The total bytes successfully transferred
-    int last_mult = -1;          // The last reported multiple of percent output
+    int bytes_sent = 0;                 // The total bytes successfully sent
+    int last_mult = -1;                 // The last multiple of percent output
+    int curr_mult;                      // The current percent multiple being returned
 
     // Open the file to be transferred.
     if ((file = fopen(filename, "rb")))
     {
         // While the end of the file has not been reached.
         int bytes_read;
-        int mult;
         while (!feof(file))
         {
             // Read data from the file.
@@ -164,10 +164,10 @@ int transfer_file (int sockfd, host_t *dest, char *filename, int filesize,
                     {
                         // Output the percentage.
                         bytes_sent += bytes_read;
-                        mult = output_sent_progress(bytes_sent, filesize,
+                        curr_mult = output_sent_progress(bytes_sent, filesize,
                                                     last_mult);
-                        if (mult != -1)
-                            last_mult = mult;
+                        if (curr_mult != -1)
+                            last_mult = curr_mult;
                         // Update the sequence number.
                         next_seq = (next_seq == 1) ? 0 : 1;
                     }
@@ -236,8 +236,8 @@ int rftp_transfer_file (char *server_name, char *port_number, char *filename,
     if ((init = initialize_transfer(sockfd, &server, filename, timeout, verbose)))
     {
         // Get the filesize of the file transfer.
-        filesize = ntohl(init->fsize);
         printf("File transfer initialized.\n\n");
+        filesize = ntohl(init->fsize);
 
         // Give information on file transfer.
         if (filesize < kB)

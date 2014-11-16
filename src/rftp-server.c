@@ -19,7 +19,7 @@
  */
 FILE *create_dir_and_file (char *output_dir, char *filename)
 {
-    // Create the full pathname
+    // Create the full pathname.
     char* path = malloc(strlen(output_dir) + strlen(filename) + 2);
     if (path)
     {
@@ -69,7 +69,7 @@ control_message *initialize_receive (int sockfd, host_t *source, int verbose)
 int end_receive (int sockfd, host_t *source, control_message *term,
         FILE *target, int time_wait, int verbose)
 {
-    int result = 1; // Result of the termination.
+    int result = 1; // Result of the termination
 
     // Close the target file.
     fclose(target);
@@ -102,11 +102,14 @@ int end_receive (int sockfd, host_t *source, control_message *term,
 int receive_file (int sockfd, host_t *source, char *filename, int filesize,
         char *output_dir, int time_wait, int verbose)
 {
-    control_message *term = NULL;       // A termination message.
-    data_message *data = NULL;          // A data message.
-    FILE *target = NULL;                // The target file.
-    int next_seq = 1;                   // The next expected sequence number.
-    int status = 1;                     // The status of the file transfer.
+    control_message *term = NULL;       // A termination message
+    data_message *data = NULL;          // A data message
+    FILE *target = NULL;                // The target file
+    int next_seq = 1;                   // The next expected sequence number
+    int status = 1;                     // The status of the file transfer
+    int bytes_recv = 0;                 // The total bytes received
+    int last_mult = -1;                 // The last multiple of percentage output
+    int curr_mult;                      // The current percentage multiple being returned
 
     // Create the output directory and output file.
     target = create_dir_and_file(output_dir, filename);
@@ -127,11 +130,13 @@ int receive_file (int sockfd, host_t *source, char *filename, int filesize,
                 status = 0;
                 break;
             }
-
             // Acknowledge the data packet and send back to client.
             data->ack = ACK;
             send_rftp_message(sockfd, source, (rftp_message*) data);
-
+            // Give an output of received data.
+            bytes_recv += ntohl(data->data_len);
+            curr_mult = output_received_progress(bytes_recv, filesize, last_mult);
+            if (curr_mult != -1) last_mult = curr_mult;
             // Update the next expected sequence number.
             next_seq = (next_seq == 1) ? 0 : 1;
         }
@@ -155,15 +160,41 @@ int receive_file (int sockfd, host_t *source, char *filename, int filesize,
 }
 
 /*
+ * Outputs the percentage of the file transfer.
+ */
+int output_received_progress (int bytes_recv, int total_bytes, int last_mult)
+{
+    int percentage = 100 * ((double) bytes_recv / (double) total_bytes);
+    int multiple = (percentage / OUTPUT_PCT);
+
+    // If the percentage has not been printed out before, print the progress.
+    if ((percentage % OUTPUT_PCT == 0) && (multiple != last_mult))
+    {
+        if (total_bytes < kB)
+            printf("%d/%d\tB received ..... %d%% complete\n", bytes_recv,
+                   total_bytes, percentage);
+        else if (total_bytes >= kB && total_bytes < MB)
+            printf("%d/%d\tkB received ..... %d%% complete\n",
+                   B_TO_KB(bytes_recv), B_TO_KB(total_bytes), percentage);
+        else
+            printf("%d/%d\tMB received ..... %d%% complete\n",
+                   B_TO_MB(bytes_recv), B_TO_MB(total_bytes), percentage);
+        return multiple;
+    }
+
+    return -1;
+}
+
+/*
  * Receives a file from the UDP client, via the Reliable File Transfer Protocol (RFTP).
  */
 int rftp_receive_file (char *port_number, char *output_dir, int time_wait,
         int verbose)
 {
-    host_t client;              // Client host.
-    char *filename = NULL;      // Name of the file being transferred.
-    int filesize;               // Size of the file being transferred.
-    int status = 0;             // Status of the file transfer.
+    host_t client;              // Client host
+    char *filename = NULL;      // Name of the file being transferred
+    int filesize;               // Size of the file being transferred
+    int status = 0;             // Status of the file transfer
 
     // Create a socket and listen on port number.
     int sockfd = create_server_socket(port_number);
@@ -175,18 +206,24 @@ int rftp_receive_file (char *port_number, char *output_dir, int time_wait,
     if (init)
     {
         // Get the file's information from the init message.
+        printf("File transfer initialized.\n\n");
         filesize = ntohl(init->fsize);
         filename = malloc(ntohl(init->fname_len) + 1);
         memcpy(filename, init->fname, ntohl(init->fname_len));
         filename[ntohl(init->fname_len)] = '\0';
-
+        // Display the file transfer information.
+        if (filesize < kB)
+            printf("Receiving %s (%d B) from %s into %s ...\n", filename,
+                   filesize, client.friendly_ip, output_dir);
+        else if (filesize >= kB && filesize < MB)
+            printf("Receiving %s (%d kB) from %s into %s ...\n", filename,
+                   B_TO_KB(filesize), client.friendly_ip, output_dir);
+        else
+            printf("Receiving %s (%d MB) from %s into %s ...\n", filename,
+                   B_TO_MB(filesize), client.friendly_ip, output_dir);
         // Receive the file from the client.
-        printf("File transfer initialized.\n\n");
-        printf("Receiving %s (%d B) from %s into %s ...\n", filename, filesize,
-               client.friendly_ip, output_dir);
         status = receive_file(sockfd, &client, filename, filesize, output_dir,
                               time_wait, verbose);
-
         // Report the status of the file transfer.
         if (status)
             printf("\n%s was successfully received from %s into %s.\n",

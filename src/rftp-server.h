@@ -25,5 +25,6 @@ int receive_file (int sockfd, host_t *source, char *filename, int filesize,
 int end_receive (int sockfd, host_t *source, control_message *term,
         FILE *target, int time_wait, int verbose);
 FILE *create_dir_and_file (char *output_dir, char *filename);
+int output_received_progress (int bytes_sent, int total_bytes, int last_mult);
 
 #endif /* RFTP_SERVER_H */
