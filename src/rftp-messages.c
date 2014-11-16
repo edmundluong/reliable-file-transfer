@@ -50,7 +50,7 @@ rftp_message *create_init_message (char *filename)
         fclose(file);
         if (size > MAX_FILE_SIZE)
         {
-            printf(\n"ERROR: Cannot send files larger than 4GB.\n");
+            printf("\nERROR: Cannot send files larger than 4GB.\n");
             exit(EXIT_FAILURE);
         }
         else
