@@ -3,6 +3,9 @@
 #include <string.h>
 #include "udp-client.h"
 
+/*
+ * Creates a socket on the specified port number to communicate with a UDP server.
+ */
 int create_client_socket (char* hostname, char* port, host_t* server)
 {
     int sockfd;

@@ -16,7 +16,9 @@
 #include <poll.h>
 #include "rftp-messages.h"
 
-#define MAX_FILE_SIZE 4000000000 // Maximum transferable file size is 4GB.
+#define MAX_FILE_SIZE 4000000000        // Maximum transferable file size is 4GB
+#define DATA_HEADER 8                   // The header size of a data message
+#define CTRL_HEADER 12                  // The header size of a control message
 
 /*
  * Helper method to determine a file's size.
@@ -66,8 +68,8 @@ rftp_message *create_init_message (char *filename)
             msg->fname_len = htonl((uint32_t) fname_len);
             // The name of the file being transferred.
             memcpy(msg->fname, filename, fname_len);
-            // Length of the message is 16 bytes of headers and variable filename size.
-            msg->length = 12 + fname_len;
+            // Control message length is 16 bytes of headers and variable filename size.
+            msg->length = CTRL_HEADER + fname_len;
 
             // Return initialization message.
             return (rftp_message*) msg;
@@ -104,8 +106,8 @@ rftp_message *create_term_message (int seq_num, char *fname, int fsize)
         msg->fname_len = htonl((uint32_t) fname_len);
         // The name of the file being transferred.
         memcpy(msg->fname, fname, fname_len);
-        // Length of the message is 16 bytes of headers and variable filename size.
-        msg->length = 12 + fname_len;
+        // Control message length is 16 bytes of headers and variable filename size.
+        msg->length = CTRL_HEADER + fname_len;
     }
 
     // Return termination message.
@@ -115,8 +117,7 @@ rftp_message *create_term_message (int seq_num, char *fname, int fsize)
 /*
  * Creates an empty data message.
  */
-rftp_message *create_data_message (int seq_num, int bytes_read,
-        uint8_t buffer[DATA_MSS])
+rftp_message *create_data_message (int seq_num, int bytes_read, uint8_t buffer[DATA_MSS])
 {
     data_message *msg = (data_message*) create_message();
     if (msg)
@@ -131,8 +132,8 @@ rftp_message *create_data_message (int seq_num, int bytes_read,
         msg->data_len = htonl((uint32_t) bytes_read);
         // The buffer of data to be transmitted.
         memcpy(msg->data, buffer, bytes_read);
-        // Length of the message is 8 bytes of headers and variable data size.
-        msg->length = 8 + bytes_read;
+        // Data message length is 8 bytes of headers and variable data size.
+        msg->length = DATA_HEADER + bytes_read;
     }
 
     // Return data message.
@@ -236,19 +237,21 @@ void verbose_msg_output (int trans_type, int msg_type, rftp_message* msg)
     data_message *data = NULL;          // Data message
     int data_size;                      // Data size of message
 
-    // Construct strings and display verbose output.
+    // Control messages.
     char *trans_t = (trans_type == SENT) ? "Sent" : "Received";
     if (msg_type == INIT_MSG || msg_type == TERM_MSG)
     {
+        // Construct strings and display verbose output.
         if (msg_type == INIT_MSG) msg_t = "INIT MSG";
         if (msg_type == TERM_MSG) msg_t = "TERM MSG";
         ctrl = (control_message*) msg;
         ack = (ctrl->ack == NAK) ? "NAK" : "ACK";
-        printf("%s %s[%d] ..... %s\n", trans_t, msg_t, ntohs(ctrl->seq_num),
-               ack);
+        printf("%s %s[%d] ..... %s\n", trans_t, msg_t, ntohs(ctrl->seq_num), ack);
     }
+    // Data messages.
     if (msg_type == DATA_MSG)
     {
+        // Construct strings and display verbose output.
         msg_t = "DATA_MSG";
         data = (data_message*) msg;
         ack = (data->ack == NAK) ? "NAK" : "ACK";

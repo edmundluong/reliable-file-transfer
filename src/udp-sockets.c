@@ -4,8 +4,10 @@
 #include <string.h>
 #include "udp-sockets.h"
 
-struct addrinfo* get_udp_sockaddr (const char* node, const char* port,
-                                   int flags)
+/*
+ * Gets UDP socket information for the given port number.
+ */
+struct addrinfo* get_udp_sockaddr (const char* node, const char* port, int flags)
 {
     struct addrinfo hints;
     struct addrinfo* results;

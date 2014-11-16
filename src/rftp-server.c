@@ -32,10 +32,12 @@ FILE *create_dir_and_file (char *output_dir, char *filename)
         strcat(path, "/");
         strcat(path, filename);
     }
+
     // Create the directory and return the file pointer.
     mkdir(output_dir, 0700);
     FILE* file = fopen(path, "wb");
     free(path);
+
     return file;
 }
 
@@ -45,8 +47,7 @@ FILE *create_dir_and_file (char *output_dir, char *filename)
 control_message *initialize_receive (int sockfd, host_t *source, int verbose)
 {
     // Receive a control message from client.
-    control_message *msg = (control_message*) receive_rftp_message(sockfd,
-                                                                   source);
+    control_message *msg = (control_message*) receive_rftp_message(sockfd, source);
     if (verbose) verbose_msg_output(RECV, msg->type, (rftp_message*) msg);
     if (msg)
     {
@@ -120,6 +121,7 @@ int receive_file (int sockfd, host_t *source, char *filename, int filesize,
 
     // Create the output directory and output file.
     target = create_dir_and_file(output_dir, filename);
+
     // Receive data from the client until a termination message is sent.
     rftp_message *msg = receive_rftp_message(sockfd, source);
     while ((term = (control_message*) msg)->type != TERM_MSG)
@@ -139,16 +141,15 @@ int receive_file (int sockfd, host_t *source, char *filename, int filesize,
                 status = FAIL;
                 break;
             }
-
             // Acknowledge the data packet and send back to client.
             data->ack = ACK;
             send_rftp_message(sockfd, source, (rftp_message*) data);
             if (verbose) verbose_msg_output(SENT, data->type, (rftp_message*) data);
+            free(msg);
 
             // Give an output of received data.
             bytes_recv += ntohl(data->data_len);
-            curr_mult = output_received_progress(bytes_recv, filesize,
-                                                 last_mult);
+            curr_mult = output_received_progress(bytes_recv, filesize, last_mult);
             if (curr_mult != OUTPUTTED) last_mult = curr_mult;
 
             // Update the next expected sequence number.
@@ -167,34 +168,32 @@ int receive_file (int sockfd, host_t *source, char *filename, int filesize,
     // Free allocated memory and return the status of the file transfer.
     if (msg) free(msg);
     if (term) free(term);
-    if (data) free(data);
     return status;
 }
 
 /*
- * Outputs the percentage of the file transfer.
+ * Outputs the percentage progress of the file transfer.
  */
 int output_received_progress (int bytes_recv, int total_bytes, int last_mult)
 {
-    int percentage = 100 * ((double) bytes_recv / (double) total_bytes);
-    int multiple = (percentage / OUTPUT_PCT);
+    int pct = 100 * ((double) bytes_recv / (double) total_bytes);
+    int multiple = (pct / OUTPUT_PCT);
 
     // If the percentage has not been printed out before, print the progress.
-    if ((percentage % OUTPUT_PCT == 0) && (multiple != last_mult))
+    if ((pct % OUTPUT_PCT == 0) && (multiple != last_mult))
     {
         if (total_bytes < kB)
-            printf("%d/%d\tB received ..... %d%% complete\n", bytes_recv,
-                   total_bytes, percentage);
+            printf("%d/%d\tB received ..... %d%% complete\n", bytes_recv, total_bytes, pct);
         else if (total_bytes >= kB && total_bytes < MB)
             printf("%d/%d\tkB received ..... %d%% complete\n",
-                   B_TO_KB(bytes_recv), B_TO_KB(total_bytes), percentage);
+                   B_TO_KB(bytes_recv), B_TO_KB(total_bytes), pct);
         else
             printf("%d/%d\tMB received ..... %d%% complete\n",
-                   B_TO_MB(bytes_recv), B_TO_MB(total_bytes), percentage);
+                   B_TO_MB(bytes_recv), B_TO_MB(total_bytes), pct);
 
         return multiple;
     }
-
+    // Percentage has been outputted before.
     return OUTPUTTED;
 }
 

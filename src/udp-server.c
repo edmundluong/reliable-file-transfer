@@ -6,6 +6,9 @@
 #include "udp-server.h"
 #include "udp-sockets.h"
 
+/*
+ * Binds a socket.
+ */
 int bind_socket (struct addrinfo* addr_list)
 {
     struct addrinfo* addr;
@@ -54,6 +57,9 @@ int bind_socket (struct addrinfo* addr_list)
 
 }
 
+/*
+ * Binds a socket on as a UDP server, and listens on the specified port number.
+ */
 int create_server_socket (char* port)
 {
     struct addrinfo* results = get_udp_sockaddr(NULL, port, AI_PASSIVE);

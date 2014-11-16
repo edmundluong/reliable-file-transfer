@@ -13,16 +13,19 @@
 #include <getopt.h>
 #include "rftp-server.h"
 
-#define DEFAULT_TIME_WAIT 30    // Default transmission timeout: 50 milliseconds.
-#define DEFAULT_PORT "5000"     // Default port number: 5000.
+#define DEFAULT_TIME_WAIT 30    // Default transmission timeout: 50 milliseconds
+#define DEFAULT_PORT "5000"     // Default port number: 5000
+
+#define VERBOSE_OFF 0           // Verbose mode off
+#define VERBOSE_ON 1            // Verbose mode on
 
 // Main program.
 int main (int argc, char **argv)
 {
-    static int verbose_flag = 0;                        // Toggles verbose output.
-    int time_wait           = DEFAULT_TIME_WAIT;        // Transmission timeout, in milliseconds.
-    char *port_number       = DEFAULT_PORT;             // Port number the server is listening on.
-    char *output_dir        = NULL;                     // The output directory for the file transfer.
+    static int verbose_flag = VERBOSE_OFF;              // Toggles verbose output
+    int time_wait           = DEFAULT_TIME_WAIT;        // Transmission timeout, in milliseconds
+    char *port_number       = DEFAULT_PORT;             // Port number the server is listening on
+    char *output_dir        = NULL;                     // The output directory for the file transfer
 
     // Handle command line options.
     int arg, option_index = 0;
@@ -37,16 +40,16 @@ int main (int argc, char **argv)
     {
         switch (arg)
         {
-            case 'v':   // Enables verbose output.
+            case 'v':   // Enables verbose output
                 verbose_flag = 1;
                 break;
-            case 't':   // Sets transmission response wait time, in milliseconds.
+            case 't':   // Sets transmission response wait time, in milliseconds
                 time_wait = atoi(optarg);
                 break;
-            case 'p':   // Sets port number to send messages to.
+            case 'p':   // Sets port number to send messages to
                 port_number = optarg;
                 break;
-            case '?':   // Failure.
+            case '?':   // Failure
                 exit(EXIT_FAILURE);
         }
     }

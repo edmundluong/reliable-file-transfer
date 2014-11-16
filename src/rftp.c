@@ -13,17 +13,20 @@
 #include <getopt.h>
 #include "rftp-client.h"
 
-#define DEFAULT_TIMEOUT 50      // Default transmission timeout: 50 milliseconds.
-#define DEFAULT_PORT "5000"     // Default port number: 5000.
+#define DEFAULT_TIMEOUT 50      // Default transmission timeout: 50 milliseconds
+#define DEFAULT_PORT "5000"     // Default port number: 5000
+
+#define VERBOSE_OFF 0           // Verbose mode off
+#define VERBOSE_ON 1            // Verbose mode on
 
 // Main program.
 int main (int argc, char **argv)
 {
-    static int verbose_flag = 0;               // Toggles verbose output.
-    int timeout             = DEFAULT_TIMEOUT; // Transmission timeout, in milliseconds.
-    char *port_number       = DEFAULT_PORT;    // Port number the server is listening on.
-    char *server            = NULL;            // The server name that is receiving the file.
-    char *filename          = NULL;            // The name of the file that is being transferred.
+    static int verbose_flag = VERBOSE_OFF;     // Toggles verbose output
+    int timeout             = DEFAULT_TIMEOUT; // Transmission timeout, in milliseconds
+    char *port_number       = DEFAULT_PORT;    // Port number the server is listening on
+    char *server            = NULL;            // The server name that is receiving the file
+    char *filename          = NULL;            // The name of the file that is being transferred
 
     // Handle command line options.
     int arg, option_index = 0;
@@ -38,16 +41,16 @@ int main (int argc, char **argv)
     {
         switch (arg)
         {
-            case 'v':   // Enables verbose output.
-                verbose_flag = 1;
+            case 'v':   // Enables verbose output
+                verbose_flag = VERBOSE_ON;
                 break;
-            case 't':   // Sets transmission timeout, in milliseconds.
+            case 't':   // Sets transmission timeout, in milliseconds
                 timeout = atoi(optarg);
                 break;
-            case 'p':   // Sets port number to send messages to.
+            case 'p':   // Sets port number to send messages to
                 port_number = optarg;
                 break;
-            case '?':   // Failure.
+            case '?':   // Failure
                 exit(EXIT_FAILURE);
         }
     }
