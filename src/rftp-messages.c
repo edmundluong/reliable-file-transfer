@@ -50,8 +50,7 @@ rftp_message *create_init_message (char *filename)
         fclose(file);
         if (size > MAX_FILE_SIZE)
         {
-            printf(\n"ERROR: Cannot send files larger than 4GB.\n");
-            exit(EXIT_FAILURE);
+            printf("\nERROR: Cannot send files larger than 4GB.\n");
         }
         else
         {
@@ -77,7 +76,6 @@ rftp_message *create_init_message (char *filename)
     else if (!file)
     {
         printf("\nERROR: %s could not sent, file does not exist.\n", filename);
-        exit(EXIT_FAILURE);
     }
 
     // If an error occurred, return NULL.
@@ -236,16 +234,14 @@ void verbose_msg_output (int trans_type, int msg_type, rftp_message* msg)
     char *ack = NULL;                   // Acknowledgment of message
     control_message *ctrl = NULL;       // Control message
     data_message *data = NULL;          // Data message
-    int data_size = -1;                 // Data size of message
+    int data_size;                      // Data size of message
 
     // Construct strings and display verbose output.
     char *trans_t = (trans_type == SENT) ? "Sent" : "Received";
     if (msg_type == INIT_MSG || msg_type == TERM_MSG)
     {
-        if (msg_type == INIT_MSG)
-            msg_t = "INIT MSG";
-        if (msg_type == TERM_MSG)
-            msg_t = "TERM MSG";
+        if (msg_type == INIT_MSG) msg_t = "INIT MSG";
+        if (msg_type == TERM_MSG) msg_t = "TERM MSG";
         ctrl = (control_message*) msg;
         ack = (ctrl->ack == NAK) ? "NAK" : "ACK";
         printf("%s %s[%d] ..... %s\n", trans_t, msg_t, ntohs(ctrl->seq_num),
