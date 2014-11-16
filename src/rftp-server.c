@@ -95,12 +95,12 @@ int end_receive (int sockfd, host_t *source, control_message *term,
         dupe->ack = ACK;
         retval = send_rftp_message(sockfd, source, (rftp_message*) dupe);
         if (verbose) verbose_msg_output(SENT, dupe->type, (rftp_message*) dupe);
+        free(dupe);
     }
     // If any messages fail to send, signal an error.
     if (retval == -1) result = FAIL;
 
     // Return the result of the termination.
-    free(dupe);
     return result;
 }
 
@@ -145,7 +145,6 @@ int receive_file (int sockfd, host_t *source, char *filename, int filesize,
             data->ack = ACK;
             send_rftp_message(sockfd, source, (rftp_message*) data);
             if (verbose) verbose_msg_output(SENT, data->type, (rftp_message*) data);
-            free(msg);
 
             // Give an output of received data.
             bytes_recv += ntohl(data->data_len);
@@ -154,6 +153,7 @@ int receive_file (int sockfd, host_t *source, char *filename, int filesize,
 
             // Update the next expected sequence number.
             next_seq = (next_seq == 1) ? 0 : 1;
+            free(msg);
         }
         // Receive another message from the client.
         msg = receive_rftp_message(sockfd, source);
