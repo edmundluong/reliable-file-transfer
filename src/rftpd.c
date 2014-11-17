@@ -4,8 +4,8 @@
  *  Version     : 1.0
  *  Copyright   : MIT 2014 © Edmund Luong
  *  Date        : November 11, 2014
- *  Description : Executable RFTP server daemon for the Reliable File Transfer Protocol (RFTP),
- *                used to receive a file from a RFTP client.
+ *  Description : Executable server daemon for the Reliable File Transfer
+ *                Protocol used to receive a file from a RFTP client.
  *
  *  CS 3357a Assignment 2
  */

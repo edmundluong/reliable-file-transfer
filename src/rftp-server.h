@@ -4,7 +4,7 @@
  *  Version     : 1.0
  *  Copyright   : MIT 2014 © Edmund Luong
  *  Date        : November 11, 2014
- *  Description : Implementation of a Reliable File Transfer Protocol (RFTP) server,
+ *  Description : Implementation of a Reliable File Transfer Protocol server,
  *                used to receive a file transfer from a RFTP client.
  *
  *  CS 3357a Assignment 2

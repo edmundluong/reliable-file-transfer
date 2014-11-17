@@ -4,7 +4,7 @@
  *  Version     : 1.0
  *  Copyright   : MIT 2014 © Edmund Luong
  *  Date        : November 16, 2014
- *  Description : Implementation of various data-related functions and helper methods.
+ *  Description : Implementation of various data-related functions.
  *
  *  CS 3357a Assignment 2
  */

@@ -4,8 +4,9 @@
  *  Version     : 1.0
  *  Copyright   : MIT 2014 © Edmund Luong
  *  Date        : November 16, 2014
- *  Description : Implementation of the Reliable File Transfer Protocol (RFTP), used to
- *                for communications and data transmission between RFTP clients/servers.
+ *  Description : Implementation of the Reliable File Transfer Protocol,
+ *                used for communication and data transmission
+ *                between RFTP clients and servers.
  *
  *  CS 3357a Assignment 2
  */

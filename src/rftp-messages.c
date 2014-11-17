@@ -4,8 +4,9 @@
  *  Version     : 1.0
  *  Copyright   : MIT 2014 © Edmund Luong
  *  Date        : November 11, 2014
- *  Description : Implementation of messages for the Reliable File Transfer Protocol (RFTP),
- *                used for communication and data transmission between RFTP clients/servers.
+ *  Description : Implementation of messages for the Reliable File Transfer
+ *                Protocol, used for communication and data transmission
+ *                between RFTP clients and servers.
  *
  *  CS 3357a Assignment 2
  */
