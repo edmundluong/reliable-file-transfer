@@ -15,18 +15,15 @@
 #include "rftp-messages.h"
 
 /*
- * Function prototypes.
+ * Function prototypes
  */
-control_message *initialize_transfer (int sockfd, host_t *dest, char *filename,
-        int timeout, int verbose);
-int rftp_transfer_file (char *server_name, char *port_number, char *filename,
+control_message *request_transfer_session (int sockfd, host_t *dest, char *filename,
         int timeout, int verbose);
 int transfer_file (int sockfd, host_t *dest, char *filename, int filesize,
         int timeout, int verbose);
 int end_transfer (int sockfd, host_t *dest, FILE *file, char *filename,
         int filesize, int next_seq, int timeout, int verbose);
-int stop_and_wait_send (int sockfd, host_t* dest, rftp_message *msg,
-        int msg_type, int timeout, int verbose);
-int output_sent_progress (int bytes_sent, int total_bytes, int last_mult);
+int rftp_transfer_file (char *server_name, char *port_number, char *filename,
+        int timeout, int verbose);
 
 #endif /* RFTP_CLIENT_H */

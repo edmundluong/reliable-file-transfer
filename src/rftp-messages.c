@@ -41,7 +41,7 @@ rftp_message *create_init_message (char *filename)
     control_message *msg = (control_message*) create_message();
 
     // Open the file to read, if it exists.
-    if (msg && (file = get_file(filename)))
+    if (msg && (file = get_file(filename, "r")))
     {
         // Get the size of the file and its filename length.
         fsize = get_filesize(file);

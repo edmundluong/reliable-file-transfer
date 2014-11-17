@@ -12,10 +12,18 @@
 
 #include <stdio.h>
 
+/*
+ * File-oriented macros
+ */
 #define MAX_FSIZE 2*GB // Maximum allowed filesize
 #define NO_FSIZE -1    // An absence of filesize
 
-FILE *get_file(char *filename);
+/*
+ * Function prototypes
+ */
+FILE *get_file(char *filename, char *flag);
 int get_filesize(FILE *file);
+int check_fileread(FILE *file);
+void show_transfer_info(char *filename, char *filesize, char *server_name);
 
 #endif /* FILE_H_ */
