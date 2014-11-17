@@ -17,14 +17,12 @@
 /*
  * Function prototypes.
  */
-control_message *initialize_receive (int sockfd, host_t *source, int verbose);
-int rftp_receive_file (char *port_number, char *output_dir, int time_wait,
-        int verbose);
+control_message *accept_transfer_session (int sockfd, host_t *source, int verbose);
 int receive_file (int sockfd, host_t *source, char *filename, int filesize,
         char *output_dir, int time_wait, int verbose);
-int end_receive (int sockfd, host_t *source, control_message *term,
+int end_receive_session (int sockfd, host_t *source, control_message *term,
         FILE *target, int time_wait, int verbose);
-FILE *create_dir_and_file (char *output_dir, char *filename);
-int output_received_progress (int bytes_sent, int total_bytes, int last_mult);
+int rftp_receive_file (char *port_number, char *output_dir, int time_wait,
+        int verbose);
 
 #endif /* RFTP_SERVER_H */

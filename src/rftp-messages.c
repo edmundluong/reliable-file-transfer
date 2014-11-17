@@ -138,7 +138,7 @@ void verbose_msg_output (int trans_type, int msg_type, rftp_message* msg)
     data_message *data = NULL;    // Data message
 
     // Determine the transmission type.
-    char *trans_t = (trans_type == SENT) ? "Sent" : "Received";
+    char *trans_t = (trans_type == SEND) ? "Sent" : "Received";
 
     // Control messages.
     if (msg_type == INIT_MSG || msg_type == TERM_MSG)

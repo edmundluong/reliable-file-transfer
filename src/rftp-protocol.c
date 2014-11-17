@@ -17,14 +17,16 @@
 /*
  * Receives a RFTP message from the socket file descriptor.
  *
- * Returns a RFTP message if a message was successfully received from sender.
- * Returns NULL if a message was not received.
+ * Return a RFTP message if a message was successfully received from sender.
+ * Return NULL if a message was not received.
  */
-rftp_message *receive_rftp_message (int sockfd, host_t *source, int msg_type,
-        int verbose)
+rftp_message *receive_rftp_message (int sockfd, host_t *source, int verbose)
 {
+    rftp_message *msg;     // RFTP message.
+    control_message *ctrl; // RFTP control message.
+
     // Create a new RFTP message.
-    rftp_message *msg = create_message();
+    msg = create_message();
 
     // Length of the remote IP structure.
     source->addr_len = sizeof(source->addr);
@@ -43,8 +45,13 @@ rftp_message *receive_rftp_message (int sockfd, host_t *source, int msg_type,
         inet_ntop(source->addr.sin_family, &source->addr.sin_addr,
                   source->friendly_ip, sizeof(source->friendly_ip));
 
+        // Cast the message into a control message type
+        // and determine what type of RFTP message was received.
+        ctrl = (control_message*) msg;
+
         // Display verbose message output.
-        if (verbose) verbose_msg_output(RECV, msg_type, msg);
+        if (verbose) verbose_msg_output(RECV, ctrl->type, msg);
+        ctrl = NULL;
 
         // Return the message received.
         return msg;
@@ -61,14 +68,17 @@ rftp_message *receive_rftp_message (int sockfd, host_t *source, int msg_type,
  * Receives a RFTP message from the specified socket file descriptor,
  * with a specified timeout duration.
  *
- * Returns a RFTP message if a message was successfully received from sender.
- * Returns NULL if a message was not received before request times out.
+ * Return a RFTP message if a message was successfully received from sender.
+ * Return NULL if a message was not received before request times out.
  */
 rftp_message *receive_rftp_message_with_timeout (int sockfd, host_t *source,
-        int timeout, int msg_type, int verbose)
+        int timeout, int verbose)
 {
+    rftp_message *msg;     // RFTP message
+    control_message *ctrl; // RFTP control message
+
     // Prepare to poll the socket for a RFTP message.
-    rftp_message *msg = create_message();
+    msg = create_message();
     struct pollfd fd = { .fd = sockfd, .events = POLLIN };
 
     // Poll the socket for specified time.
@@ -94,8 +104,13 @@ rftp_message *receive_rftp_message_with_timeout (int sockfd, host_t *source,
             inet_ntop(source->addr.sin_family, &source->addr.sin_addr,
                       source->friendly_ip, sizeof(source->friendly_ip));
 
+            // Cast the message into a control message type
+            // and determine what type of RFTP message was received.
+            ctrl = (control_message*) msg;
+
             // Display verbose message output.
-            if (verbose) verbose_msg_output(RECV, msg_type, msg);
+            if (verbose) verbose_msg_output(RECV, ctrl->type, msg);
+            ctrl = NULL;
 
             // Return the message received.
             return msg;
@@ -110,8 +125,8 @@ rftp_message *receive_rftp_message_with_timeout (int sockfd, host_t *source,
 /*
  * Sends a RFTP message to a host.
  *
- * Returns 1 if the message was sent successfully.
- * Returns 0 if the message could not be sent.
+ * Return 1 if the message was sent successfully.
+ * Return 0 if the message could not be sent.
  */
 int send_rftp_message (int sockfd, host_t *dest, rftp_message *msg,
         int msg_type, int verbose)
@@ -123,7 +138,7 @@ int send_rftp_message (int sockfd, host_t *dest, rftp_message *msg,
                          (struct sockaddr*) &dest->addr, dest->addr_len)))
     {
         // Display verbose message output.
-        if (verbose) verbose_msg_output(SENT, msg_type, msg);
+        if (verbose) verbose_msg_output(SEND, msg_type, msg);
     }
 
     // Return the result.
@@ -131,12 +146,48 @@ int send_rftp_message (int sockfd, host_t *dest, rftp_message *msg,
 }
 
 /*
- * Acknowledges a received RFTP message.
+ * Acknowledges a message and sends it to a host.
  *
- * Returns 1 if the message was successfully acknowledged.
- * Returns 0 if the message could not be acknowledged.
+ * Return a successful status if the acknowledgment was successfully sent.
+ * Return a failure status if the acknowledgment could be sent.
  */
-int acknowledge_message (rftp_message *orig, rftp_message *response,
+int acknowledge_message (int sockfd, host_t *dest, rftp_message *msg,
+        int msg_type, int verbose)
+{
+    control_message *ctrl; // RFTP control message
+    data_message *data;    // RFTP data message
+    int retval = SEND_ERR; // The status of the send operation
+
+    // Acknowledge a control message.
+    if (msg_type == INIT_MSG || msg_type == TERM_MSG)
+    {
+        ctrl = (control_message*) msg;
+        ctrl->ack = ACK;
+        retval = send_rftp_message(sockfd, dest, (rftp_message*) ctrl,
+                                   msg_type, verbose);
+        ctrl = NULL;
+    }
+    // Acknowledge a data message.
+    else
+    {
+        data = (data_message*) msg;
+        data->ack = ACK;
+        retval = send_rftp_message(sockfd, dest, (rftp_message*) data,
+                                   msg_type, verbose);
+        data = NULL;
+    }
+
+    // Return the status of the acknowledgment operation.
+    return (retval != SEND_ERR);
+}
+
+/*
+ * Checks the acknowledgment a received RFTP message.
+ *
+ * Return a successful status if the message was successfully acknowledged.
+ * Return a failure status if the message could not be acknowledged.
+ */
+int check_acknowledgment (rftp_message *orig, rftp_message *response,
         int msg_type)
 {
     control_message *control = NULL; // A RFTP control message
@@ -181,38 +232,49 @@ int acknowledge_message (rftp_message *orig, rftp_message *response,
 
 /*
  * Outputs the percentage progress of the file transfer.
+ *
+ * Return a percentage progress multiple, if progress is outputted.
+ * Return a outputted status, if the progress has already been outputted.
  */
-int output_sent_progress (int bytes_sent, int total_bytes, int last_mult)
+int output_progress (int trans_type, int bytes_sent, int total_bytes,
+        int last_mult)
 {
-    int percentage = 100 * ((double) bytes_sent / (double) total_bytes);
-    int multiple = (percentage / OUTPUT_INTVAL);
+    char *trans_t = NULL; // The transmission type
+    int percentage = 0;   // The percentage progress
+    int multiple = 0;     // The progress multiple
+
+    // Determine transmission type.
+    trans_t = (trans_type == SEND) ? "sent" : "received";
+    // Calculate progress.
+    percentage = 100 * ((double) bytes_sent / (double) total_bytes);
+    multiple = (percentage / OUTPUT_INTVAL);
 
     // If the percentage has not been printed out before, print the progress.
     if ((percentage % OUTPUT_INTVAL == 0) && (multiple != last_mult))
     {
         if (is_byte(total_bytes))
         {
-            printf("%3d/%3d B sent ..... %2d%% complete\n", bytes_sent,
-                   total_bytes, percentage);
+            printf("%3d/%3d B %s ..... %2d%% complete\n", bytes_sent,
+                   total_bytes, trans_t, percentage);
         }
         if (is_kilobyte(total_bytes))
         {
-            printf("%3d/%3d kB sent ..... %2d%% complete\n",
+            printf("%3d/%3d kB %s ..... %2d%% complete\n",
                    bytes_to_kilo(bytes_sent), bytes_to_kilo(total_bytes),
-                   percentage);
+                   trans_t, percentage);
         }
         if (is_megabyte(total_bytes))
         {
-            printf("%4d/%4d MB sent ..... %2d%% complete\n",
+            printf("%4d/%4d MB %s ..... %2d%% complete\n",
                    bytes_to_mega(bytes_sent), bytes_to_mega(total_bytes),
-                   percentage);
+                   trans_t, percentage);
         }
 
-        // Return the newly outputted multiple.
+        // Return the newly outputted progress multiple.
         return multiple;
     }
 
-    // Percentage has been outputted before.
+    // Progress has been outputted before.
     return OUTPUTTED;
 }
 
@@ -222,8 +284,8 @@ int output_sent_progress (int bytes_sent, int total_bytes, int last_mult)
  * When the server does not acknowledge a data packet,
  * the packet will be resent when it times out.
  *
- * Returns a successful status code if the packet was acknowledged.
- * Returns a failure status code if the packet could not be sent and acknowledged.
+ * Return a successful status if the packet was acknowledged.
+ * Return a failure status if the packet could not be sent and acknowledged.
  */
 int send_data_packet (int sockfd, host_t *dest, int seq_num, int data_size,
         uint8_t data[DATA_MSS], int timeout, int verbose)
@@ -253,8 +315,8 @@ int send_data_packet (int sockfd, host_t *dest, int seq_num, int data_size,
 /*
  * Sends a RFTP message, and waits for an acknowledgment from the server.
  *
- * Returns a successful status code if message was sent and acknowledged.
- * Returns a failure status code if an error occurred while sending the message.
+ * Returns a successful status if message was sent and acknowledged.
+ * Returns a failure status if an error occurred while sending the message.
  */
 int stop_and_wait_send (int sockfd, host_t* dest, rftp_message *msg,
         int msg_type, int timeout, int verbose)
@@ -271,9 +333,16 @@ int stop_and_wait_send (int sockfd, host_t* dest, rftp_message *msg,
     {
         // Listen for an acknowledgment of the sent packet.
         response = receive_rftp_message_with_timeout(sockfd, dest, timeout,
-                                                     msg_type, verbose);
+                                                     verbose);
 
-        // Send message again when timed out.
+        // If the message was acknowledged, return a successful status code.
+        if (check_acknowledgment(msg, response, msg_type))
+        {
+            status = SUCCESS;
+            break;
+        }
+
+        // If the message timed out, send the message again.
         retval = send_rftp_message(sockfd, dest, msg, msg_type, verbose);
     }
 
@@ -283,26 +352,30 @@ int stop_and_wait_send (int sockfd, host_t* dest, rftp_message *msg,
 }
 
 /*
- * Displays the file transfer information for the sending host.
+ * Displays the file transfer information.
  */
-void show_send_info (char *filesize, char *filename, char *server_name)
+void output_transfer_info (int trans_type, char *filename, int filesize)
 {
+    char *trans_t = NULL; // The transmission type.
+
+    // Determine transmission type.
+    trans_t = (trans_type == SEND) ? "Sending" : "Receiving";
+
     // Display file transfer in bytes.
     if (is_byte(filesize))
     {
-        printf("Sending %s (%d B) to %s ...\n", filename, filesize,
-               server_name);
+        printf("%s %s (%d B) ...\n", trans_t, filename, filesize);
     }
     // Display file transfer in kilobytes.
     if (is_kilobyte(filesize))
     {
-        printf("Sending %s (%d kB) to %s ...\n", filename, B_TO_KB(filesize),
-               server_name);
+        printf("%s %s (%d kB) ...\n", trans_t, filename,
+               bytes_to_kilo(filesize));
     }
     // Display file transfer in megabytes.
     if (is_megabyte(filesize))
     {
-        printf("Sending %s (%d MB) to %s ...\n", filename, B_TO_MB(filesize),
-               server_name);
+        printf("%s %s (%d MB) ...\n", trans_t, filename,
+               bytes_to_mega(filesize));
     }
 }

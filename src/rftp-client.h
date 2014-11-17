@@ -21,7 +21,7 @@ control_message *request_transfer_session (int sockfd, host_t *dest, char *filen
         int timeout, int verbose);
 int transfer_file (int sockfd, host_t *dest, char *filename, int filesize,
         int timeout, int verbose);
-int end_transfer (int sockfd, host_t *dest, FILE *file, char *filename,
+int end_transfer_session (int sockfd, host_t *dest, char *filename,
         int filesize, int next_seq, int timeout, int verbose);
 int rftp_transfer_file (char *server_name, char *port_number, char *filename,
         int timeout, int verbose);

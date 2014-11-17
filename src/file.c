@@ -11,7 +11,7 @@
 #include <stdio.h>
 
 /*
- * Used to open the given file, with the specified flag.
+ * Opens the given file, with the specified flag.
  *
  * Returns a file pointer to the file, if it exists.
  * Returns NULL if there was an error.
@@ -39,7 +39,8 @@ FILE *get_file (char *filename, char *flag)
                "file does not exist.\n",
                filename);
     }
-    // If the filesize is a negative value, the file could be a directory or is corrupt.
+    // If the filesize is a negative value,
+    // the file could be a directory or is corrupt.
     else if (fsize == NO_FSIZE)
     {
         printf("\nERROR: %s could not be sent, "
@@ -55,6 +56,47 @@ FILE *get_file (char *filename, char *flag)
     }
 
     return NULL;
+}
+
+/*
+ * Creates the specified directory, and creates a file in that directory.
+ */
+FILE *create_dir_and_file (char *output_dir, char *filename)
+{
+    // Create the full pathname.
+    char* path = malloc(strlen(output_dir) + strlen(filename) + 2);
+    if (path)
+    {
+        path[0] = 0;
+        strcat(path, output_dir);
+        strcat(path, "/");
+        strcat(path, filename);
+    }
+
+    // Create the directory and return the file pointer.
+    mkdir(output_dir, 0700);
+    FILE* file = fopen(path, "wb");
+    free(path);
+
+    return file;
+}
+
+/*
+ * Writes data from a data packet to the target file.
+ */
+int write_data_to_file(data_message *packet, FILE *target)
+{
+    // Write the data from the data packet to file.
+    fwrite(packet->data, sizeof(uint8_t), ntohl(packet->data_len), target);
+
+    // If file error occurred.
+    if (ferror(target))
+    {
+        perror("File write error: ");
+        return 0;
+    }
+
+    return 1;
 }
 
 /*
@@ -80,8 +122,9 @@ int get_filesize (FILE *file)
  * Returns 1 if there was no read error with the selected file.
  * Returns 0 if there was an error, and outputs the error message.
  */
-int check_fileread(FILE *file)
+int check_fileread (FILE *file)
 {
+    // If a file error occurred.
     if (ferror(file))
     {
         perror("File read error: ");

@@ -10,24 +10,25 @@
 
 #include "rftp-client.h"
 #include "rftp-config.h"
-#include "rftp-messages.h"
-#include "data.h"
-#include "file.h"
+#include "rftp-protocol.h"
 #include "udp-sockets.h"
 #include "udp-client.h"
+#include "data.h"
+#include "file.h"
 
 #include <stdlib.h>
+#include <unistd.h>
 
 /*
- * Attempts to initialize a file transfer session with a UDP server using
+ * Attempts to initialize a file transfer session with a RFTP server using
  * the Stop-and-Wait protocol.
  * When the server does not acknowledge an initialization request,
  * another request will be sent when it times out.
  *
- * Returns an initiation message for file transfer information if file is valid
+ * Return an initiation message for file transfer information if file is valid
  * and a file transfer session has been initiated.
  *
- * Returns NULL if there was an error with the file
+ * Return NULL if there was an error with the file
  * or an error initiating a session with a server.
  */
 control_message *request_transfer_session (int sockfd, host_t *dest, char *filename,
@@ -51,7 +52,10 @@ control_message *request_transfer_session (int sockfd, host_t *dest, char *filen
 }
 
 /*
- * Transfers a file to a
+ * Transfers a file to a RFTP server.
+ *
+ * Return a successful status if the file transfer was successful.
+ * Return a failure status if the file transfer failed.
  */
 int transfer_file (int sockfd, host_t *dest, char *filename, int filesize,
         int timeout, int verbose)
@@ -81,14 +85,18 @@ int transfer_file (int sockfd, host_t *dest, char *filename, int filesize,
             {
                 // Output the progress of the file transfer.
                 bytes_sent += bytes_read;
-                curr_mult = output_sent_progress(bytes_sent, filesize, last_mult);
+                curr_mult = output_progress(SEND, bytes_sent, filesize, last_mult);
                 if (curr_mult != OUTPUTTED) last_mult = curr_mult;
 
                 // Update the sequence number.
                 next_seq = (next_seq == 1) ? 0 : 1;
             }
             // If there was an error sending any data packets.
-            else return FAILURE;
+            else
+            {
+                fclose(file);
+                return FAILURE;
+            }
         }
     }
 
@@ -153,13 +161,14 @@ int rftp_transfer_file (char *server_name, char *port_number, char *filename,
         filesize = ntohl(init->fsize);
 
         // Display file transfer information.
-        show_send_info(filename, filesize, server_name);
+        output_transfer_info(SEND, filename, filesize);
 
         // Transfer the file to the server.
         status = transfer_file(sockfd, &server, filename, filesize, timeout, verbose);
     }
 
     // Return the status of the file transfer.
+    close(sockfd);
     free(init);
     return status;
 }

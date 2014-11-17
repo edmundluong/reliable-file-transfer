@@ -28,7 +28,7 @@
 #define DATA_MSG 3      // File transfer data message
 #define NAK 0           // Unacknowledged message
 #define ACK 1           // Acknowledged message
-#define SENT 0          // Sent message
+#define SEND 0          // Sent message
 #define RECV 1          // Received message
 #define DATA_HEADER 8   // Data message header size
 #define CTRL_HEADER 12  // Control message header size

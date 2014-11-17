@@ -18,10 +18,10 @@
 // Main program.
 int main (int argc, char **argv)
 {
-    static int verbose_flag = VERBOSE_OFF;              // Toggles verbose output
-    int time_wait           = DEFAULT_TIME_WAIT;        // Transmission timeout, in milliseconds
-    char *port_number       = DEFAULT_PORT;             // Port number the server is listening on
-    char *output_dir        = NULL;                     // The output directory for the file transfer
+    static int verbose_flag = SILENT;            // Toggles verbose output
+    int time_wait           = DEFAULT_TIME_WAIT; // Transmission timeout, in milliseconds
+    char *port_number       = DEFAULT_PORT;      // Port number the server is listening on
+    char *output_dir        = NULL;              // The output directory for the file transfer
 
     // Handle command line options.
     int arg, option_index = 0;
@@ -49,10 +49,14 @@ int main (int argc, char **argv)
                 exit(EXIT_FAILURE);
         }
     }
+
     // Handle non-option arguments.
     if(optind < argc)
+    {
         // Get the output directory from arguments.
         if (!output_dir) output_dir = argv[optind];
+    }
+
     // If an output directory was not supplied, exit the program.
     if (!output_dir)
     {
@@ -61,9 +65,8 @@ int main (int argc, char **argv)
         printf("Sample usage: %s [OPTIONS...] [OUTPUTDIR]\n", argv[0]);
         exit(EXIT_FAILURE);
     }
+
     // Receive a file transfer from the client and exit the program.
-    if (rftp_receive_file(port_number, output_dir, time_wait, verbose_flag))
-        exit(EXIT_SUCCESS);
-    else
-        exit(EXIT_FAILURE);
+    if (rftp_receive_file(port_number, output_dir, time_wait, verbose_flag)) exit(EXIT_SUCCESS);
+    else exit(EXIT_FAILURE);
 }

@@ -8,6 +8,7 @@
 #ifndef FILE_H
 #define FILE_H
 
+#include "rftp-messages.h"
 #include "data.h"
 
 #include <stdio.h>
@@ -22,6 +23,8 @@
  * Function prototypes
  */
 FILE *get_file(char *filename, char *flag);
+FILE *create_dir_and_file (char *output_dir, char *filename);
+int write_data_to_file(data_message *packet, FILE *target);
 int get_filesize(FILE *file);
 int check_fileread(FILE *file);
 void show_transfer_info(char *filename, char *filesize, char *server_name);
