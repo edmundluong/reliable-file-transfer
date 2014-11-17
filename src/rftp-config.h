@@ -21,6 +21,6 @@
 #define DEFAULT_TIMEOUT 50      // Default transmission timeout, in milliseconds
 #define DEFAULT_TIME_WAIT 30    // Default server wait state duration, in milliseconds
 #define DEFAULT_PORT "5000"     // Default port number
-#define OUTPUT_INTVAL 5         // Output interval, in percentage
+#define OUTPUT_INTVAL 1         // Output interval, in percentage
 
 #endif /* RFTP_CONFIG_H */

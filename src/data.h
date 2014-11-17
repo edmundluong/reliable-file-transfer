@@ -22,6 +22,7 @@
 /*
  * Function prototypes
  */
+int get_num_digits(int filesize);
 int is_byte(int filesize);
 int is_kilobyte(int filesize);
 int is_megabyte(int filesize);

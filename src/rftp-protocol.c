@@ -245,12 +245,14 @@ int check_acknowledgment (rftp_message *orig, rftp_message *response,
 int output_progress (int trans_type, int bytes_sent, int total_bytes,
         int last_mult)
 {
-    char *trans_t = NULL; // The transmission type
-    int percentage = 0;   // The percentage progress
-    int multiple = 0;     // The progress multiple
+    char *trans_t = NULL;  // Transmission type of message
+    int percentage = 0;    // Percentage progress
+    int multiple = 0;      // Progress multiple
+    int padding = 0;       // Calculated padding for output
 
     // Determine transmission type.
     trans_t = (trans_type == SEND) ? "sent" : "received";
+
     // Calculate progress.
     percentage = 100 * ((double) bytes_sent / (double) total_bytes);
     multiple = (percentage / OUTPUT_INTVAL);
@@ -260,21 +262,28 @@ int output_progress (int trans_type, int bytes_sent, int total_bytes,
     {
         if (is_byte(total_bytes))
         {
-            printf("%3d/%3d B %s ..... %2d%% complete\n", bytes_sent,
-                   total_bytes, trans_t, percentage);
+            padding = get_num_digits(total_bytes) + 3;
+            printf("%*.2f/%*.2f B %s ................ ", padding,
+                   (double) bytes_sent, padding,
+                   (double) total_bytes, trans_t);
         }
         if (is_kilobyte(total_bytes))
         {
-            printf("%3d/%3d kB %s ..... %2d%% complete\n",
-                   bytes_to_kilo(bytes_sent), bytes_to_kilo(total_bytes),
-                   trans_t, percentage);
+            padding = get_num_digits(bytes_to_kilo(total_bytes)) + 3;
+            printf("%*.2f/%*.2f kB %s ............... ", padding,
+                   bytes_to_dkilo(bytes_sent), padding,
+                   bytes_to_dkilo(total_bytes), trans_t);
         }
         if (is_megabyte(total_bytes))
         {
-            printf("%4d/%4d MB %s ..... %2d%% complete\n",
-                   bytes_to_mega(bytes_sent), bytes_to_mega(total_bytes),
-                   trans_t, percentage);
+            padding = get_num_digits(bytes_to_mega(total_bytes)) + 3;
+            printf("%*.2f/%*.2f MB %s ............... ", padding,
+                   bytes_to_dmega(bytes_sent), padding,
+                   bytes_to_dmega(total_bytes), trans_t);
         }
+        // Output progress.
+        if (percentage != 100) printf("%2d%% complete\n", percentage);
+        else printf("done\n");
 
         // Return the newly outputted progress multiple.
         return multiple;
@@ -388,18 +397,18 @@ void output_transfer_info (int trans_type, char *filename, int filesize)
     // Display file transfer in bytes.
     if (is_byte(filesize))
     {
-        printf("%s %s (%d B) ...\n", trans_t, filename, filesize);
+        printf("%s %s (%.2f B) ...\n", trans_t, filename, (double) filesize);
     }
     // Display file transfer in kilobytes.
     if (is_kilobyte(filesize))
     {
-        printf("%s %s (%d kB) ...\n", trans_t, filename,
-               bytes_to_kilo(filesize));
+        printf("%s %s (%.2f kB) ...\n", trans_t, filename,
+               bytes_to_dkilo(filesize));
     }
     // Display file transfer in megabytes.
     if (is_megabyte(filesize))
     {
-        printf("%s %s (%d MB) ...\n", trans_t, filename,
-               bytes_to_mega(filesize));
+        printf("%s %s (%.2f MB) ...\n", trans_t, filename,
+               bytes_to_dmega(filesize));
     }
 }

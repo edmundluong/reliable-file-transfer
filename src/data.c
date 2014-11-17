@@ -12,6 +12,27 @@
 #include "data.h"
 
 /*
+ * Returns how many digits there are in a filesize.
+ *
+ * Used for calculating the necessary padding for progress output.
+ */
+int get_num_digits (int filesize) {
+    if (filesize < 0) return 0;
+    if (filesize < 10) return 1;
+    if (filesize < 100) return 2;
+    if (filesize < 1000) return 3;
+    if (filesize < 10000) return 4;
+    if (filesize < 100000) return 5;
+    if (filesize < 1000000) return 6;
+    if (filesize < 10000000) return 7;
+    if (filesize < 100000000) return 8;
+    if (filesize < 1000000000) return 9;
+
+    // Unlikely, but just in case.
+    return 10;
+}
+
+/*
  * Returns whether the filesize is in bytes.
  */
 int is_byte (int filesize)
