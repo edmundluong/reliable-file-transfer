@@ -8,61 +8,65 @@
  *  CS 3357a Assignment 2
  */
 
-#include <stdlib.h>
 #include "rftp-client.h"
 #include "rftp-messages.h"
 #include "udp-sockets.h"
 #include "udp-client.h"
 
-#define OUTPUTTED -1    // Status code for outputted progress pecentages
-#define PASS 1          // A passing status
-#define FAIL 0          // A failing status
+#include <stdlib.h>
 
 /*
  * Attempts to initialize a file transfer to a UDP server. When the server does not
  * acknowledge an initialization request, another request will be sent when it timeouts.
+ *
+ * Returns an initiation message for file transfer information if file is valid
+ * and a file transfer session has been initiated.
+ *
+ * Returns NULL if there was an error with the file or an error initiating a session with
+ * a server.
  */
-control_message *initialize_transfer (int sockfd, host_t *dest, char *filename,
+control_message *initialize_transfer_session (int sockfd, host_t *dest, char *filename,
         int timeout, int verbose)
 {
     // Construct an initialization message.
     rftp_message *init;
     if ((init = create_init_message(filename)))
-    {
-        // Send init message to server using Stop-and-Wait.
+        // Send initiation message to server via Stop-and-Wait protocol.
         if (stop_and_wait_send(sockfd, dest, init, INIT_MSG, timeout, verbose))
-        {
             return (control_message*) init;
-        }
-    }
-    // Transfer failed to initialize, return NULL.
+
+    // Transfer failed to initialize.
     free(init);
     return NULL;
 }
 
 /*
  * Sends a RFTP message, and waits for an acknowledgment from the server.
+ *
  * Returns 1 if message was sent and acknowledged.
+ *
  * Returns 0 if an error occurred while sending the message.
  */
 int stop_and_wait_send (int sockfd, host_t* dest, rftp_message *msg,
         int msg_type, int timeout, int verbose)
 {
-    rftp_message *response = NULL;      // The RFTP response message from the server
+    rftp_message *response = NULL;      // A received RFTP message
     control_message *control = NULL;    // A RFTP control message
     data_message *data = NULL;          // A RFTP data message
     int result = FAIL;                  // The result of the operation
 
     // Send the message to the server.
     int retval = send_rftp_message(sockfd, dest, msg);
+    // Verbose output of sent message.
     if (verbose) verbose_msg_output(SENT, msg_type, msg);
     while (retval != -1)
     {
         // Listen for an acknowledgment of the packet.
         if ((response = receive_rftp_message_with_timeout(sockfd, dest, timeout)))
         {
-            // Handle control message acknowledgments.
+            // Verbose output of received message.
             if (verbose) verbose_msg_output(RECV, msg_type, response);
+            // Handle control message acknowledgments.
             if (msg_type == INIT_MSG || msg_type == TERM_MSG)
             {
                 // Compare original message with response.

@@ -8,31 +8,27 @@
  *  CS 3357a Assignment 2
  */
 
+#include "rftp-client.h"
+#include "rftp-config.h"
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <getopt.h>
-#include "rftp-client.h"
-
-#define DEFAULT_TIMEOUT 50      // Default transmission timeout: 50 milliseconds
-#define DEFAULT_PORT "5000"     // Default port number: 5000
-
-#define VERBOSE_OFF 0           // Verbose mode off
-#define VERBOSE_ON 1            // Verbose mode on
 
 // Main program.
 int main (int argc, char **argv)
 {
-    static int verbose_flag = VERBOSE_OFF;     // Toggles verbose output
-    int timeout             = DEFAULT_TIMEOUT; // Transmission timeout, in milliseconds
-    char *port_number       = DEFAULT_PORT;    // Port number the server is listening on
-    char *server            = NULL;            // The server name that is receiving the file
-    char *filename          = NULL;            // The name of the file that is being transferred
+    static int verbose  = SILENT;          // Toggles verbose output
+    int timeout         = DEFAULT_TIMEOUT; // Transmission timeout, in milliseconds
+    char *port_number   = DEFAULT_PORT;    // Port number the server is listening on
+    char *server        = NULL;            // The server name that is receiving the file
+    char *filename      = NULL;            // The name of the file that is being transferred
 
     // Handle command line options.
     int arg, option_index = 0;
     static struct option long_options[] =
     {
-            {"verbose", no_argument, &verbose_flag, 1},
+            {"verbose", no_argument, &verbose, 1},
             {"timeout", optional_argument, 0, 't'},
             {"port", optional_argument, 0, 'p'},
             {0, 0, 0, 0}
@@ -42,7 +38,7 @@ int main (int argc, char **argv)
         switch (arg)
         {
             case 'v':   // Enables verbose output
-                verbose_flag = VERBOSE_ON;
+                verbose = VERBOSE;
                 break;
             case 't':   // Sets transmission timeout, in milliseconds
                 timeout = atoi(optarg);
@@ -54,6 +50,7 @@ int main (int argc, char **argv)
                 exit(EXIT_FAILURE);
         }
     }
+
     // Handle non-option arguments.
     for (; optind < argc; ++optind)
     {
@@ -64,6 +61,7 @@ int main (int argc, char **argv)
         // If both are supplied, stop looping.
         else break;
     }
+
     // If either the server or the filename was not supplied, exit the program.
     if (!server || !filename)
     {
@@ -75,13 +73,15 @@ int main (int argc, char **argv)
     }
 
     // Transfer the file to the server and exit the program.
-    if (rftp_transfer_file(server, port_number, filename, timeout, verbose_flag))
+    if (rftp_transfer_file(server, port_number, filename, timeout, verbose))
     {
+        // Success.
         printf("\n%s was successfully sent to %s.\n", filename, server);
         exit(EXIT_SUCCESS);
     }
     else
     {
+        // Failure.
         printf("\nCould not successfully send %s to %s.\n", filename, server);
         exit(EXIT_FAILURE);
     }

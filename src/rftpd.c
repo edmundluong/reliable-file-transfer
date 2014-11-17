@@ -8,16 +8,12 @@
  *  CS 3357a Assignment 2
  */
 
+#include "rftp-config.h"
+#include "rftp-server.h"
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <getopt.h>
-#include "rftp-server.h"
-
-#define DEFAULT_TIME_WAIT 30    // Default transmission timeout: 50 milliseconds
-#define DEFAULT_PORT "5000"     // Default port number: 5000
-
-#define VERBOSE_OFF 0           // Verbose mode off
-#define VERBOSE_ON 1            // Verbose mode on
 
 // Main program.
 int main (int argc, char **argv)
