@@ -11,7 +11,6 @@
  */
 
 #include "rftp-protocol.h"
-#include "rftp-messages.h"
 #include "rftp-config.h"
 #include "rftp-server.h"
 #include "udp-sockets.h"

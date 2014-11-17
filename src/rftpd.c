@@ -10,8 +10,8 @@
  *  CS 3357a Assignment 2
  */
 
-#include "rftp-config.h"
 #include "rftp-server.h"
+#include "rftp-config.h"
 
 #include <stdio.h>
 #include <stdlib.h>

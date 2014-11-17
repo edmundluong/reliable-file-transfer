@@ -357,6 +357,24 @@ int stop_and_wait_send (int sockfd, host_t* dest, rftp_message *msg,
 }
 
 /*
+ * Writes data from a data packet to the target file.
+ */
+int write_data_to_file(data_message *packet, FILE *target)
+{
+    // Write the data from the data packet to file.
+    fwrite(packet->data, sizeof(uint8_t), ntohl(packet->data_len), target);
+
+    // If file error occurred.
+    if (ferror(target))
+    {
+        perror("File write error: ");
+        return 0;
+    }
+
+    return 1;
+}
+
+/*
  * Displays the file transfer information.
  */
 void output_transfer_info (int trans_type, char *filename, int filesize)

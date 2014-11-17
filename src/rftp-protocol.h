@@ -33,6 +33,7 @@ int check_acknowledgment (rftp_message *orig, rftp_message *response,
         int msg_type);
 int stop_and_wait_send (int sockfd, host_t* dest, rftp_message *msg,
         int msg_type, int timeout, int verbose);
+int write_data_to_file(data_message *packet, FILE *target);
 int output_progress (int trans_type, int bytes_sent, int total_bytes,
         int last_mult);
 void output_transfer_info (int trans_type, char *filename, int filesize);

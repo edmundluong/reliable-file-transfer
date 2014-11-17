@@ -13,6 +13,8 @@
 
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
+#include <sys/stat.h>
 
 /*
  * Opens the given file, with the specified flag.
@@ -83,24 +85,6 @@ FILE *create_dir_and_file (char *output_dir, char *filename)
     free(path);
 
     return file;
-}
-
-/*
- * Writes data from a data packet to the target file.
- */
-int write_data_to_file(data_message *packet, FILE *target)
-{
-    // Write the data from the data packet to file.
-    fwrite(packet->data, sizeof(uint8_t), ntohl(packet->data_len), target);
-
-    // If file error occurred.
-    if (ferror(target))
-    {
-        perror("File write error: ");
-        return 0;
-    }
-
-    return 1;
 }
 
 /*

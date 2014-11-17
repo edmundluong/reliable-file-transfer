@@ -15,7 +15,6 @@
 #include "rftp-config.h"
 #include "udp-sockets.h"
 #include "udp-client.h"
-#include "data.h"
 #include "file.h"
 
 #include <stdlib.h>
