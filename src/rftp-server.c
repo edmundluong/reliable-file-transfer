@@ -1,12 +1,17 @@
 /*
- * rftp-server.c
+ *  Name        : rftp-server.c
+ *  Author      : Edmund Luong <edmundvmluong@gmail.com>
+ *  Version     : 1.0
+ *  Copyright   : MIT 2014 © Edmund Luong
+ *  Date        : November 11, 2014
+ *  Description : Implementation of a Reliable File Transfer Protocol (RFTP) server,
+ *                used to receive a file transfer from a RFTP client.
  *
- *  Created on: Nov 11, 2014
- *      Author: edmund
+ *  CS 3357a Assignment 2
  */
 
-#include "rftp-messages.h"
 #include "rftp-protocol.h"
+#include "rftp-messages.h"
 #include "rftp-config.h"
 #include "rftp-server.h"
 #include "udp-sockets.h"
@@ -40,7 +45,8 @@ control_message *initialize_receive (int sockfd, host_t *source, int verbose)
         {
             // Acknowledge the message and return the initialization message.
             if (acknowledge_message(sockfd, source, (rftp_message*) msg,
-                                    INIT_MSG, verbose))
+            INIT_MSG,
+                                    verbose))
             {
                 return msg;
             }
@@ -93,7 +99,8 @@ int receive_file (int sockfd, host_t *source, char *filename, int filesize,
 
             // Acknowledge the data packet and send back to client.
             retval = acknowledge_message(sockfd, source, (rftp_message*) data,
-                                         DATA_MSG, verbose);
+            DATA_MSG,
+                                         verbose);
 
             // Give an output of received data.
             bytes_recv += ntohl(data->data_len);

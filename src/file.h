@@ -1,8 +1,12 @@
 /*
- * file.h
+ *  Name        : file.h
+ *  Author      : Edmund Luong <edmundvmluong@gmail.com>
+ *  Version     : 1.0
+ *  Copyright   : MIT 2014 © Edmund Luong
+ *  Date        : November 16, 2014
+ *  Description : Implementation of various file-related functions and helper methods.
  *
- *  Created on: Nov 16, 2014
- *      Author: edmund
+ *  CS 3357a Assignment 2
  */
 
 #ifndef FILE_H
@@ -29,4 +33,4 @@ int get_filesize(FILE *file);
 int check_fileread(FILE *file);
 void show_transfer_info(char *filename, char *filesize, char *server_name);
 
-#endif /* FILE_H_ */
+#endif /* FILE_H */

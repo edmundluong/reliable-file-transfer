@@ -1,17 +1,32 @@
+/*
+ *  Name        : udp-server.c
+ *  Author      : Edmund Luong <edmundvmluong@gmail.com>, Jeff Shantz <jeff@csd.uwo.ca>
+ *  Version     : 1.0
+ *  Copyright   : MIT 2014 © Edmund Luong, Jeff Shantz
+ *  Date        : November 11, 2014
+ *  Description : Implements a UDP server socket to listen on.
+ *
+ *  CS 3357a Assignment 2
+ */
+
+#include "udp-server.h"
+#include "udp-sockets.h"
+
 #include <netdb.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/socket.h>
 #include <unistd.h>
-#include "udp-server.h"
-#include "udp-sockets.h"
 
 /*
  * Binds a socket.
+ *
+ * Return a socket file description, if successful.
+ * Exit the program if unable to bind the socket.
  */
-int bind_socket (struct addrinfo* addr_list)
+int bind_socket (struct addrinfo *addr_list)
 {
-    struct addrinfo* addr;
+    struct addrinfo *addr;
     int sockfd;
 
     // Iterate through each addrinfo in the list; stop when we successfully bind
@@ -58,11 +73,14 @@ int bind_socket (struct addrinfo* addr_list)
 }
 
 /*
- * Binds a socket on as a UDP server, and listens on the specified port number.
+ * Binds a socket as a UDP server, and listens on the specified port number.
+ *
+ * Return a UDP server socket file descriptor, if successful.
+ * Exit the program if unable to bind the socket.
  */
-int create_server_socket (char* port)
+int create_server_socket (char *port)
 {
-    struct addrinfo* results = get_udp_sockaddr(NULL, port, AI_PASSIVE);
+    struct addrinfo *results = get_udp_sockaddr(NULL, port, AI_PASSIVE);
     int sockfd = bind_socket(results);
 
     return sockfd;

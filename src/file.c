@@ -1,8 +1,12 @@
 /*
- * file.c
+ *  Name        : file.c
+ *  Author      : Edmund Luong <edmundvmluong@gmail.com>
+ *  Version     : 1.0
+ *  Copyright   : MIT 2014 © Edmund Luong
+ *  Date        : November 16, 2014
+ *  Description : Implementation of various file-related functions and helper methods.
  *
- *  Created on: Nov 16, 2014
- *      Author: edmund
+ *  CS 3357a Assignment 2
  */
 
 #include "file.h"

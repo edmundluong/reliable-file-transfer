@@ -3,7 +3,9 @@
  *  Author      : Edmund Luong <edmundvmluong@gmail.com>
  *  Version     : 1.0
  *  Copyright   : MIT 2014 © Edmund Luong
- *  Description : Server-specific functions for the Reliable File Transfer Protocol (RFTP).
+ *  Date        : November 11, 2014
+ *  Description : Implementation of a Reliable File Transfer Protocol (RFTP) server,
+ *                used to receive a file transfer from a RFTP client.
  *
  *  CS 3357a Assignment 2
  */
@@ -11,8 +13,8 @@
 #ifndef RFTP_SERVER_H
 #define RFTP_SERVER_H
 
-#include "udp-sockets.h"
 #include "rftp-messages.h"
+#include "udp-sockets.h"
 
 /*
  * Function prototypes.

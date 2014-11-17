@@ -1,16 +1,31 @@
+/*
+ *  Name        : udp-client.c
+ *  Author      : Edmund Luong <edmundvmluong@gmail.com>, Jeff Shantz <jeff@csd.uwo.ca>
+ *  Version     : 1.0
+ *  Copyright   : MIT 2014 © Edmund Luong, Jeff Shantz
+ *  Date        : November 11, 2014
+ *  Description : Implements a UDP client socket to listen on.
+ *
+ *  CS 3357a Assignment 2
+ */
+
+#include "udp-client.h"
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "udp-client.h"
 
 /*
  * Creates a socket on the specified port number to communicate with a UDP server.
+ *
+ * Return a socket file descriptor, if successful.
+ * Exit the program if a socket could not be binded.
  */
-int create_client_socket (char* hostname, char* port, host_t* server)
+int create_client_socket (char *hostname, char *port, host_t *server)
 {
     int sockfd;
-    struct addrinfo* addr;
-    struct addrinfo* results = get_udp_sockaddr(hostname, port, 0);
+    struct addrinfo *addr;
+    struct addrinfo *results = get_udp_sockaddr(hostname, port, 0);
 
     // Iterate through each addrinfo in the list;
     // stop when we successfully create a socket

@@ -1,12 +1,17 @@
 /*
- * rftp-protocol.h
+ *  Name        : rftp-protocol.h
+ *  Author      : Edmund Luong <edmundvmluong@gmail.com>
+ *  Version     : 1.0
+ *  Copyright   : MIT 2014 © Edmund Luong
+ *  Date        : November 16, 2014
+ *  Description : Implementation of the Reliable File Transfer Protocol (RFTP), used to
+ *                for communications and data transmission between RFTP clients/servers.
  *
- *  Created on: Nov 16, 2014
- *      Author: edmund
+ *  CS 3357a Assignment 2
  */
 
-#ifndef RFTP_PROTOCOL_H_
-#define RFTP_PROTOCOL_H_
+#ifndef RFTP_PROTOCOL_H
+#define RFTP_PROTOCOL_H
 
 #include "rftp-messages.h"
 

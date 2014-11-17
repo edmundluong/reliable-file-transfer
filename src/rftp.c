@@ -3,7 +3,9 @@
  *  Author      : Edmund Luong <edmundvmluong@gmail.com>
  *  Version     : 1.0
  *  Copyright   : MIT 2014 © Edmund Luong
- *  Description : Client for the Reliable File Transfer Protocol (RFTP).
+ *  Date        : November 11, 2014
+ *  Description : Executable client for the Reliable File Transfer Protocol (RFTP),
+ *                used to transfer a file to a RFTP server.
  *
  *  CS 3357a Assignment 2
  */

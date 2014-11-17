@@ -1,3 +1,14 @@
+/*
+ *  Name        : udp-sockets.h
+ *  Author      : Edmund Luong <edmundvmluong@gmail.com>, Jeff Shantz <jeff@csd.uwo.ca>
+ *  Version     : 1.0
+ *  Copyright   : MIT 2014 © Edmund Luong, Jeff Shantz
+ *  Date        : November 11, 2014
+ *  Description : UDP socket implementation.
+ *
+ *  CS 3357a Assignment 2
+ */
+
 #ifndef UDP_SOCKETS_H
 #define UDP_SOCKETS_H
 
@@ -17,6 +28,6 @@ typedef struct
 /*
  * Function prototypes.
  */
-struct addrinfo* get_udp_sockaddr (const char* node, const char* port, int flags);
+struct addrinfo *get_udp_sockaddr (const char *node, const char *port, int flags);
 
 #endif /* UDP_SOCKETS_H */

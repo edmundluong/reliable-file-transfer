@@ -3,7 +3,9 @@
  *  Author      : Edmund Luong <edmundvmluong@gmail.com>
  *  Version     : 1.0
  *  Copyright   : MIT 2014 © Edmund Luong
- *  Description : Server for the Reliable File Transfer Protocol (RFTP) daemon.
+ *  Date        : November 11, 2014
+ *  Description : Executable RFTP server daemon for the Reliable File Transfer Protocol (RFTP),
+ *                used to receive a file from a RFTP client.
  *
  *  CS 3357a Assignment 2
  */
