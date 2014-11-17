@@ -116,8 +116,8 @@ int check_fileread (FILE *file)
     if (ferror(file))
     {
         perror("File read error: ");
-        return 0;
+        return FILE_ERROR;
     }
 
-    return 1;
+    return NO_ERROR;
 }

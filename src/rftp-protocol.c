@@ -368,10 +368,10 @@ int write_data_to_file (data_message *packet, FILE *target)
     if (ferror(target))
     {
         perror("File write error: ");
-        return 0;
+        return FAILURE;
     }
 
-    return 1;
+    return SUCCESS;
 }
 
 /*

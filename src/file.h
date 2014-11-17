@@ -16,6 +16,9 @@
 
 #include <stdio.h>
 
+#define FILE_ERROR 0
+#define NO_ERROR 1
+
 /*
  * File-oriented macros
  */
