@@ -71,21 +71,21 @@ typedef struct rftp_control_message
 typedef struct rftp_data_message
 {
     int length;             // RFTP message length
-    uint8_t type;           // Type 3 RFTP message is reserved for data packets
+    uint8_t type;           // Type 3 RFTP message is for data packets
     uint8_t ack;            // Acknowledgment status
     uint16_t seq_num;       // Sequence number of the message
     uint32_t data_len;      // Number of data bytes in the message
-    uint8_t data[DATA_MSS]; // Buffer of binary data bytes, maximum of 1464 bytes
+    uint8_t data[DATA_MSS]; // Buffer of binary data bytes, 1464 bytes maximum
 } data_message;
-
 
 /*
  * Function prototypes
  */
-rftp_message *create_message();
-rftp_message *create_init_message(char *filename);
-rftp_message *create_term_message(int seq_num, char *fname, int fsize);
-rftp_message *create_data_message(int seq_num, int bytes_read, uint8_t buffer[DATA_MSS]);
-void verbose_msg_output(int trans_type, int msg_type, rftp_message* msg);
+rftp_message *create_message ();
+rftp_message *create_init_message (char *filename);
+rftp_message *create_term_message (int seq_num, char *fname, int fsize);
+rftp_message *create_data_message (int seq_num, int bytes_read,
+        uint8_t buffer[DATA_MSS]);
+void verbose_msg_output (int trans_type, int msg_type, rftp_message* msg);
 
 #endif /* RFTP_MESSAGES_H */

@@ -16,7 +16,7 @@
 #include <netdb.h>
 
 /*
- * host_t struct to hold source addresses for RFTP message.
+ * Used to store information of source addresses.
  */
 typedef struct
 {
@@ -26,8 +26,9 @@ typedef struct
 } host_t;
 
 /*
- * Function prototypes.
+ * Function prototypes
  */
-struct addrinfo *get_udp_sockaddr (const char *node, const char *port, int flags);
+struct addrinfo *get_udp_sockaddr (const char *node, const char *port,
+        int flags);
 
 #endif /* UDP_SOCKETS_H */

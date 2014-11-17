@@ -26,9 +26,11 @@
 /*
  * Initializes the server to begin receiving a file from a RFTP client
  * when a file transfer initialization message is received.
- * The server acknowledges the initialization message, and begins receiving a file.
  *
- * Return an initialization message containing file transfer information, if successful.
+ * The server acknowledges the initialization message and
+ * begins receiving a file.
+ *
+ * Return an init message with file transfer information, if successful.
  * Return NULL if there was an error with acknowledging the message.
  */
 control_message *initialize_receive (int sockfd, host_t *source, int verbose)
@@ -44,8 +46,7 @@ control_message *initialize_receive (int sockfd, host_t *source, int verbose)
         {
             // Acknowledge the message and return the initialization message.
             if (acknowledge_message(sockfd, source, (rftp_message*) msg,
-            INIT_MSG,
-                                    verbose))
+                                    INIT_MSG, verbose))
             {
                 return msg;
             }
@@ -72,9 +73,9 @@ int receive_file (int sockfd, host_t *source, char *filename, int filesize,
     int status = FAILURE;         // Status of the file transfer
     int next_seq = 1;             // Next expected sequence number
     int bytes_recv = 0;           // Total number of bytes received
-    int curr_mult = 0;          // The current percent multiple being returned
+    int curr_mult = 0;            // The current percent multiple being returned
     int last_mult = OUTPUTTED;    // Last outputted progress multiple
-    int retval = SEND_ERR;        // The status of the send operations
+    int retval = 0;               // The status of the send operations
 
     // Create the output directory and output file.
     target = create_dir_and_file(output_dir, filename);
@@ -119,9 +120,9 @@ int receive_file (int sockfd, host_t *source, char *filename, int filesize,
     if (term->type == TERM_MSG)
     {
         fclose(target);
-        term = NULL;
         status = end_receive_session(sockfd, source, term, target, time_wait,
                                      verbose);
+        term = NULL;
     }
 
     // Free allocated memory and return the status of the file transfer.
@@ -139,11 +140,11 @@ int end_receive_session (int sockfd, host_t *source, control_message *term,
         FILE *target, int time_wait, int verbose)
 {
     control_message *dupe; // Duplicate RFTP termination message
-    int retval = SEND_ERR; // The result of the send operation
+    int retval = 0;        // The result of the send operation
 
     // Acknowledge the termination message and send it back to client.
     retval = acknowledge_message(sockfd, source, (rftp_message*) term,
-                                 term->type, verbose);
+                                 TERM_MSG, verbose);
 
     // Go into a waiting state for any duplicate termination requests.
     while ((dupe = (control_message*) receive_rftp_message_with_timeout(
@@ -151,7 +152,7 @@ int end_receive_session (int sockfd, host_t *source, control_message *term,
     {
         // Resend termination acknowledgment.
         retval = acknowledge_message(sockfd, source, (rftp_message*) dupe,
-                                     dupe->type, verbose);
+                                     TERM_MSG, verbose);
         free(dupe);
     }
 
@@ -185,7 +186,7 @@ int rftp_receive_file (char *port_number, char *output_dir, int time_wait,
     {
         // Get the file's information from the init message.
         printf("File transfer initialized.\n");
-        printf("File will be transferred into %s.\n\n", output_dir);
+        printf("File will be received in the %s directory.\n\n", output_dir);
         filesize = ntohl(init->fsize);
         filename = malloc(ntohl(init->fname_len) + 1);
         memcpy(filename, init->fname, ntohl(init->fname_len));

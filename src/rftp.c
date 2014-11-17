@@ -20,11 +20,11 @@
 // Main program.
 int main (int argc, char **argv)
 {
-    static int verbose  = SILENT;          // Toggles verbose output
-    int timeout         = DEFAULT_TIMEOUT; // Transmission timeout, in milliseconds
-    char *port_number   = DEFAULT_PORT;    // Port number the server is listening on
-    char *server        = NULL;            // The server name that is receiving the file
-    char *filename      = NULL;            // The name of the file that is being transferred
+    static int verbose = SILENT;      // Toggles verbose output
+    int timeout = DEFAULT_TIMEOUT;    // Transmission timeout in milliseconds
+    char *port_number = DEFAULT_PORT; // RFTP server port number
+    char *server = NULL;              // RFTP server name (IP address)
+    char *filename = NULL;            // Name of file to be sent
 
     // Handle command line options.
     int arg, option_index = 0;
@@ -35,7 +35,8 @@ int main (int argc, char **argv)
             {"port", optional_argument, 0, 'p'},
             {0, 0, 0, 0}
     };
-    while((arg = getopt_long(argc, argv, "vt:p:", long_options, &option_index)) != EOF)
+    while ((arg = getopt_long(argc, argv, "vt:p:", long_options,
+                              &option_index)) != EOF)
     {
         switch (arg)
         {
@@ -64,13 +65,14 @@ int main (int argc, char **argv)
         else break;
     }
 
-    // If either the server or the filename was not supplied, exit the program.
+    // If either the server or filename was not supplied, exit the program.
     if (!server || !filename)
     {
         printf("ERROR:\n");
         if (!server) printf("- A server name must be supplied.\n");
         if (!filename) printf("- A filename must be supplied.\n");
-        printf("Sample usage: %s [OPTIONS...] [SERVER] [FILENAME]\n", argv[0]);
+        printf("Sample usage: %s [OPTIONS...] [SERVER] [FILENAME]\n",
+               argv[0]);
         exit(EXIT_FAILURE);
     }
 

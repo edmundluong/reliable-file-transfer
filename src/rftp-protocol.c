@@ -61,7 +61,7 @@ rftp_message *receive_rftp_message (int sockfd, host_t *source, int verbose)
         // Return the message received.
         return msg;
     }
-    // If a message was not received, free the allocated memory and return NULL.
+    // If a message was not received, free the allocated memory.
     else
     {
         free(msg);
@@ -159,9 +159,9 @@ int send_rftp_message (int sockfd, host_t *dest, rftp_message *msg,
 int acknowledge_message (int sockfd, host_t *dest, rftp_message *msg,
         int msg_type, int verbose)
 {
-    control_message *ctrl; // RFTP control message
-    data_message *data;    // RFTP data message
-    int retval = SEND_ERR; // The status of the send operation
+    control_message *ctrl = NULL; // RFTP control message
+    data_message *data = NULL;    // RFTP data message
+    int retval = SEND_ERR;        // The status of the send operation
 
     // Acknowledge a control message.
     if (msg_type == INIT_MSG || msg_type == TERM_MSG)
@@ -341,7 +341,7 @@ int stop_and_wait_send (int sockfd, host_t* dest, rftp_message *msg,
                                                      verbose);
 
         // If the message was acknowledged, return a successful status code.
-        if (check_acknowledgment(msg, response, msg_type))
+        if (response && check_acknowledgment(msg, response, msg_type))
         {
             status = SUCCESS;
             break;
@@ -359,7 +359,7 @@ int stop_and_wait_send (int sockfd, host_t* dest, rftp_message *msg,
 /*
  * Writes data from a data packet to the target file.
  */
-int write_data_to_file(data_message *packet, FILE *target)
+int write_data_to_file (data_message *packet, FILE *target)
 {
     // Write the data from the data packet to file.
     fwrite(packet->data, sizeof(uint8_t), ntohl(packet->data_len), target);

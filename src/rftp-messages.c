@@ -52,10 +52,10 @@ rftp_message *create_init_message (char *filename)
         // Construct the initialization message and convert
         // contents into network order, if necessary.
         msg->length = CTRL_HEADER + fname_len;        // RFTP message length
-        msg->type = (uint8_t) INIT_MSG;               // Initialization message type
+        msg->type = (uint8_t) INIT_MSG;               // Initialization message
         msg->ack = (uint8_t) NAK;                     // Unacknowledged message
         msg->seq_num = htons((uint16_t) 0);           // Initial sequence number
-        msg->fsize = htonl((uint32_t) fsize);         // Size of the file being transferred
+        msg->fsize = htonl((uint32_t) fsize);         // Size of the file
         msg->fname_len = htonl((uint32_t) fname_len); // Length of the filename
         memcpy(msg->fname, filename, fname_len);      // Filename
 
@@ -88,10 +88,10 @@ rftp_message *create_term_message (int seq_num, char *filename, int filesize)
         // Construct the termination message and convert
         // contents into network order, if necessary.
         msg->length = CTRL_HEADER + fname_len;        // RFTP message length
-        msg->type = (uint8_t) TERM_MSG;               // Termination message type
+        msg->type = (uint8_t) TERM_MSG;               // Termination message
         msg->ack = (uint8_t) NAK;                     // Unacknowledged message
         msg->seq_num = htons((uint16_t) seq_num);     // Sequence number
-        msg->fsize = htonl((uint32_t) filesize);      // Size of the file, in bytes
+        msg->fsize = htonl((uint32_t) filesize);      // Size of the file
         msg->fname_len = htonl((uint32_t) fname_len); // Length of the filename
         memcpy(msg->fname, filename, fname_len);      // Filename
     }
@@ -103,10 +103,11 @@ rftp_message *create_term_message (int seq_num, char *filename, int filesize)
 /*
  * Creates a data message to store and transmit data between hosts.
  *
- * Returns a data message carrying a variable number of binary data bytes, if successful.
+ * Returns a data message storing binary data bytes, if successful.
  * Returns NULL if an error occurred while creating the data message.
  */
-rftp_message *create_data_message (int seq_num, int bytes_read, uint8_t buffer[DATA_MSS])
+rftp_message *create_data_message (int seq_num, int bytes_read,
+        uint8_t buffer[DATA_MSS])
 {
     // Create a new RFTP data message.
     data_message *msg = (data_message*) create_message();
@@ -118,7 +119,7 @@ rftp_message *create_data_message (int seq_num, int bytes_read, uint8_t buffer[D
         msg->type = (uint8_t) DATA_MSG;               // Data message type
         msg->ack = (uint8_t) NAK;                     // Unacknowledged message
         msg->seq_num = htons((uint16_t) seq_num);     // Sequence number
-        msg->data_len = htonl((uint32_t) bytes_read); // The number of data bytes
+        msg->data_len = htonl((uint32_t) bytes_read); // Number of data bytes
         memcpy(msg->data, buffer, bytes_read);        // Binary data bytes
     }
 
@@ -148,7 +149,8 @@ void verbose_msg_output (int trans_type, int msg_type, rftp_message* msg)
         msg_t = (msg_type == INIT_MSG) ? "INIT MSG" : "TERM MSG";
         ctrl = (control_message*) msg;
         ack = (ctrl->ack == NAK) ? "NAK" : "ACK";
-        printf("%s %s[%d] ..... %s\n", trans_t, msg_t, ntohs(ctrl->seq_num), ack);
+        printf("%s %s[%d] ..... %s\n", trans_t, msg_t, ntohs(ctrl->seq_num),
+               ack);
     }
     // Data messages.
     if (msg_type == DATA_MSG)

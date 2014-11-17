@@ -26,14 +26,14 @@
  * When the server does not acknowledge an initialization request,
  * another request will be sent when it times out.
  *
- * Return an initiation message for file transfer information if file is valid
- * and a file transfer session has been initiated.
+ * Return an initiation message for file transfer information
+ * if file is valid and a file transfer session has been initiated.
  *
  * Return NULL if there was an error with the file
  * or an error initiating a session with a server.
  */
-control_message *request_transfer_session (int sockfd, host_t *dest, char *filename,
-        int timeout, int verbose)
+control_message *request_transfer_session (int sockfd, host_t *dest,
+        char *filename, int timeout, int verbose)
 {
     rftp_message *init; // A initialization message
 
@@ -41,7 +41,8 @@ control_message *request_transfer_session (int sockfd, host_t *dest, char *filen
     if ((init = create_init_message(filename)))
     {
         // Send initialization message to server via Stop-and-Wait protocol.
-        if (stop_and_wait_send(sockfd, dest, init, INIT_MSG, timeout, verbose))
+        if (stop_and_wait_send(sockfd, dest, init, INIT_MSG, timeout,
+                               verbose))
         {
             return (control_message*) init;
         }
@@ -81,12 +82,13 @@ int transfer_file (int sockfd, host_t *dest, char *filename, int filesize,
 
             // Create a data packet and send it to the server.
             // Continue when data packet was successfully acknowledged.
-            if ((send_data_packet(sockfd, dest, next_seq,
-                                  bytes_read, buffer, timeout, verbose)))
+            if ((send_data_packet(sockfd, dest, next_seq, bytes_read, buffer,
+                                  timeout, verbose)))
             {
                 // Output the progress of the file transfer.
                 bytes_sent += bytes_read;
-                curr_mult = output_progress(SEND, bytes_sent, filesize, last_mult);
+                curr_mult = output_progress(SEND, bytes_sent, filesize,
+                                            last_mult);
                 if (curr_mult != OUTPUTTED) last_mult = curr_mult;
 
                 // Update the sequence number.
@@ -103,8 +105,8 @@ int transfer_file (int sockfd, host_t *dest, char *filename, int filesize,
 
     // Terminate the file transfer session and return the status code.
     fclose(file);
-    return end_transfer_session(sockfd, dest, filename,
-                                filesize, next_seq, timeout, verbose);
+    return end_transfer_session(sockfd, dest, filename, filesize, next_seq,
+                                timeout, verbose);
 }
 
 /*
@@ -113,8 +115,8 @@ int transfer_file (int sockfd, host_t *dest, char *filename, int filesize,
  * When the server does not acknowledge a termination request,
  * another request will be sent when it times out.
  *
- * Return a successful status code if the termination request was acknowledged.
- * Return a failure status code if the termination request could not be acknowledged.
+ * Return a successful status code if the termination was acknowledged.
+ * Return a failure status code if the termination could not be acknowledged.
  */
 int end_transfer_session (int sockfd, host_t *dest, char *filename,
         int filesize, int next_seq, int timeout, int verbose)
@@ -125,8 +127,10 @@ int end_transfer_session (int sockfd, host_t *dest, char *filename,
     if ((term = create_term_message(next_seq, filename, filesize)))
     {
         // Send termination message to server using Stop-and-Wait.
-        if (stop_and_wait_send(sockfd, dest, term, TERM_MSG, timeout, verbose))
+        if (stop_and_wait_send(sockfd, dest, term, TERM_MSG, timeout,
+                               verbose))
         {
+            free(term);
             return SUCCESS;
         }
     }
@@ -137,10 +141,11 @@ int end_transfer_session (int sockfd, host_t *dest, char *filename,
 }
 
 /*
- * Transfers a file to the UDP server, via the Reliable File Transfer Protocol (RFTP).
+ * Transfers a file to the UDP server using
+ * the Reliable File Transfer Protocol (RFTP).
  *
- * Return a successful status code if the file was successfully transferred.
- * Return a failure status code if the file could not be transferred successfully.
+ * Return a successful status code if the transfer was successful
+ * Return a failure status code if the transfer failed.
  */
 int rftp_transfer_file (char *server_name, char *port_number, char *filename,
         int timeout, int verbose)
@@ -152,10 +157,12 @@ int rftp_transfer_file (char *server_name, char *port_number, char *filename,
 
     // Create a socket and listen on port number.
     int sockfd = create_client_socket(server_name, port_number, &server);
-    printf("Trying to initiate a file transfer with %s:%s ...\n", server_name, port_number);
+    printf("Trying to initiate a file transfer with %s:%s ...\n", server_name,
+           port_number);
 
     // If the transfer was initialized, begin transferring the file.
-    if ((init = request_transfer_session(sockfd, &server, filename, timeout, verbose)))
+    if ((init = request_transfer_session(sockfd, &server, filename, timeout,
+                                         verbose)))
     {
         // Get the filesize of the file transfer.
         printf("File transfer initialized.\n\n");
@@ -165,7 +172,8 @@ int rftp_transfer_file (char *server_name, char *port_number, char *filename,
         output_transfer_info(SEND, filename, filesize);
 
         // Transfer the file to the server.
-        status = transfer_file(sockfd, &server, filename, filesize, timeout, verbose);
+        status = transfer_file(sockfd, &server, filename, filesize, timeout,
+                               verbose);
     }
 
     // Return the status of the file transfer.

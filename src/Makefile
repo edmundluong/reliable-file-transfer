@@ -3,7 +3,8 @@ CFLAGS=-Wall -g -c
 LFLAGS=-Wall -g
 
 all: rftp rftpd
-clean: rm -f *.o rftp rftpd
+clean:
+	rm -f *.o rftp rftpd
 
 # RFTP
 rftp: rftp.o rftp-client.o rftp-protocol.o rftp-messages.o udp-sockets.o udp-client.o file.o data.o

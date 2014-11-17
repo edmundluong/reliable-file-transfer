@@ -21,7 +21,8 @@
  *
  * Return address information of a service provider.
  */
-struct addrinfo *get_udp_sockaddr (const char *node, const char *port, int flags)
+struct addrinfo *get_udp_sockaddr (const char *node, const char *port,
+        int flags)
 {
     struct addrinfo hints;
     struct addrinfo *results;
@@ -29,18 +30,20 @@ struct addrinfo *get_udp_sockaddr (const char *node, const char *port, int flags
 
     memset(&hints, 0, sizeof(struct addrinfo));
 
-    hints.ai_family   = AF_INET;    // Return socket addresses for our local IPv4 addresses
+    hints.ai_family = AF_INET;      // Return socket addresses
+                                    // for our local IPv4 addresses
+
     hints.ai_socktype = SOCK_DGRAM; // Return UDP socket addresses
-    hints.ai_flags    = flags;      // Socket addresses should be listening sockets
+    hints.ai_flags = flags;         // Return istening socket addresses
 
-    retval = getaddrinfo(node, port, &hints, &results);
-
-    if (retval != 0)
+    // Get the socket address, exit the program if there was an error.
+    if ((retval = getaddrinfo(node, port, &hints, &results)) != 0)
     {
         fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(retval));
         exit(EXIT_FAILURE);
     }
 
+    // Return the socket address.
     return results;
 }
 

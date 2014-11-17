@@ -19,8 +19,8 @@
 /*
  * Function prototypes
  */
-control_message *request_transfer_session (int sockfd, host_t *dest, char *filename,
-        int timeout, int verbose);
+control_message *request_transfer_session (int sockfd, host_t *dest,
+        char *filename, int timeout, int verbose);
 int transfer_file (int sockfd, host_t *dest, char *filename, int filesize,
         int timeout, int verbose);
 int end_transfer_session (int sockfd, host_t *dest, char *filename,

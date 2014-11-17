@@ -19,7 +19,8 @@
 /*
  * Function prototypes.
  */
-control_message *accept_transfer_session (int sockfd, host_t *source, int verbose);
+control_message *accept_transfer_session (int sockfd, host_t *source,
+        int verbose);
 int receive_file (int sockfd, host_t *source, char *filename, int filesize,
         char *output_dir, int time_wait, int verbose);
 int end_receive_session (int sockfd, host_t *source, control_message *term,

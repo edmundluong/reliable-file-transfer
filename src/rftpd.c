@@ -20,10 +20,10 @@
 // Main program.
 int main (int argc, char **argv)
 {
-    static int verbose_flag = SILENT;            // Toggles verbose output
-    int time_wait           = DEFAULT_TIME_WAIT; // Transmission timeout, in milliseconds
-    char *port_number       = DEFAULT_PORT;      // Port number the server is listening on
-    char *output_dir        = NULL;              // The output directory for the file transfer
+    static int verbose_flag = SILENT;  // Toggles verbose output
+    int time_wait = DEFAULT_TIME_WAIT; // Transmission timeout in milliseconds
+    char *port_number = DEFAULT_PORT;  // Port number to listen on
+    char *output_dir = NULL;           // The transfer output directory
 
     // Handle command line options.
     int arg, option_index = 0;
@@ -34,26 +34,27 @@ int main (int argc, char **argv)
             {"port", optional_argument, 0, 'p'},
             {0, 0, 0, 0}
     };
-    while((arg = getopt_long(argc, argv, "vt:p:", long_options, &option_index)) != EOF)
+    while ((arg = getopt_long(argc, argv, "vt:p:", long_options,
+                              &option_index)) != EOF)
     {
         switch (arg)
         {
-            case 'v':   // Enables verbose output
+            case 'v': // Enables verbose output
                 verbose_flag = 1;
                 break;
-            case 't':   // Sets transmission response wait time, in milliseconds
+            case 't': // Sets transmission response wait time, in milliseconds
                 time_wait = atoi(optarg);
                 break;
-            case 'p':   // Sets port number to send messages to
+            case 'p': // Sets port number to send messages to
                 port_number = optarg;
                 break;
-            case '?':   // Failure
+            case '?': // Failure
                 exit(EXIT_FAILURE);
         }
     }
 
     // Handle non-option arguments.
-    if(optind < argc)
+    if (optind < argc)
     {
         // Get the output directory from arguments.
         if (!output_dir) output_dir = argv[optind];
@@ -69,6 +70,12 @@ int main (int argc, char **argv)
     }
 
     // Receive a file transfer from the client and exit the program.
-    if (rftp_receive_file(port_number, output_dir, time_wait, verbose_flag)) exit(EXIT_SUCCESS);
-    else exit(EXIT_FAILURE);
+    if (rftp_receive_file(port_number, output_dir, time_wait, verbose_flag))
+    {
+        exit(EXIT_SUCCESS);
+    }
+    else
+    {
+        exit(EXIT_FAILURE);
+    }
 }
