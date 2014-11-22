@@ -2,3 +2,5 @@
 /src/rftpd
 /src/rftp
 *.o
+.cproject
+.project
